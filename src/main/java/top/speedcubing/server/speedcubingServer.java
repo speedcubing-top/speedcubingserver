@@ -4,12 +4,16 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,6 +42,7 @@ import top.speedcubing.server.bukkitcmd.staff.freeze;
 import top.speedcubing.server.bukkitcmd.staff.history;
 import top.speedcubing.server.cubingcmd.staff.nicklogs;
 import top.speedcubing.server.cubingcmd.staff.testkb;
+import top.speedcubing.server.bukkitcmd.staff.cps;
 import top.speedcubing.server.bukkitcmd.status;
 import top.speedcubing.server.bukkitcmd.trolls.bangift;
 import top.speedcubing.server.bukkitcmd.trolls.deepfry;
@@ -57,8 +62,12 @@ import top.speedcubing.server.lang.LanguageSystem;
 import top.speedcubing.server.login.BungeePacket;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.system.command.CubingCommandLoader;
+import top.speedcubing.server.utils.CPSMonitor;
 import top.speedcubing.server.utils.LogListener;
 import top.speedcubing.server.utils.WordDictionary;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 public class speedcubingServer extends JavaPlugin {
     public static final Pattern nameRegex = Pattern.compile("^\\w{3,16}$");
@@ -73,9 +82,20 @@ public class speedcubingServer extends JavaPlugin {
 
     public static boolean loaded = false;
 
+    private BukkitAudiences audiences; // <- added field
+
+    // CPS monitoring moved to CPSMonitor helper class
+
     @Override
     public void onEnable() {
         instance = this;
+
+        // initialize Adventure audiences
+        audiences = BukkitAudiences.create(this);
+
+        // start the CPSMonitor with the plugin and audiences
+        CPSMonitor.start(this, audiences);
+
         if (!SpigotConfig.bungee) {
             speedcubingServer.getInstance().getLogger().warning("bungeecord shouldn't be false, shutting down server.");
             Bukkit.getServer().shutdown();
@@ -115,24 +135,11 @@ public class speedcubingServer extends JavaPlugin {
             );
         }
 
-        //restart
-//        new Timer("Cubing-Restart-Thread").schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                restartable = true;
-//                if (Bukkit.getOnlinePlayers().isEmpty())
-//                    restart();
-//            }
-//        }, 28800000);
-
         if (!Configuration.removeLogs) {
-            //delete logs
             for (File f : new File("logs").listFiles()) {
                 if (!f.getName().equals("latest.log"))
                     f.delete();
             }
-
-            //delete hs_err
             for (File f : new File("./").listFiles()) {
                 if (f.getName().startsWith("hs_err_pid"))
                     f.delete();
@@ -169,6 +176,15 @@ public class speedcubingServer extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // stop CPS monitoring
+        CPSMonitor.stop();
+
+        // close audiences if created
+        if (audiences != null) {
+            audiences.close();
+            audiences = null;
+        }
+
         try (SQLConnection connection = Database.getSystem()) {
             connection.update(
                     "servers",
@@ -185,24 +201,35 @@ public class speedcubingServer extends JavaPlugin {
         return instance;
     }
 
+    // Null-safe command registration helper to avoid NPE if plugin.yml lacks a command entry
+    private void setExecutorSafe(String name, org.bukkit.command.CommandExecutor executor) {
+        org.bukkit.command.PluginCommand cmd = getCommand(name);
+        if (cmd == null) {
+            getLogger().warning("Command '" + name + "' not defined in plugin.yml, skipping registration.");
+            return;
+        }
+        cmd.setExecutor(executor);
+    }
+
     private void registerCommands() {
-        Bukkit.getPluginCommand("nick").setExecutor(new nick());
-        Bukkit.getPluginCommand("unnick").setExecutor(new unnick());
-        Bukkit.getPluginCommand("discord").setExecutor(new discord());
-        Bukkit.getPluginCommand("hub").setExecutor(new hub());
-        Bukkit.getPluginCommand("kaboom").setExecutor(new kaboom());
-        Bukkit.getPluginCommand("deepfry").setExecutor(new deepfry());
-        Bukkit.getPluginCommand("freeze").setExecutor(new freeze());
-        Bukkit.getPluginCommand("music").setExecutor(new music());
-        Bukkit.getPluginCommand("2fa").setExecutor(new AuthenticatorCommand());
-        Bukkit.getPluginCommand("image").setExecutor(new image());
-        Bukkit.getPluginCommand("history").setExecutor(new history());
-        Bukkit.getPluginCommand("getitemtype").setExecutor(new getitemtype());
-        Bukkit.getPluginCommand("sendpacket").setExecutor(new sendpacket());
-        Bukkit.getPluginCommand("cpsdisplay").setExecutor(new cpsdisplay());
-        Bukkit.getPluginCommand("bangift").setExecutor(new bangift());
-        Bukkit.getPluginCommand("ranks").setExecutor(new ranks());
-        Bukkit.getPluginCommand("status").setExecutor(new status());
+        setExecutorSafe("nick", new nick());
+        setExecutorSafe("unnick", new unnick());
+        setExecutorSafe("discord", new discord());
+        setExecutorSafe("hub", new hub());
+        setExecutorSafe("kaboom", new kaboom());
+        setExecutorSafe("deepfry", new deepfry());
+        setExecutorSafe("freeze", new freeze());
+        setExecutorSafe("music", new music());
+        setExecutorSafe("2fa", new AuthenticatorCommand());
+        setExecutorSafe("image", new image());
+        setExecutorSafe("history", new history());
+        setExecutorSafe("getitemtype", new getitemtype());
+        setExecutorSafe("sendpacket", new sendpacket());
+        setExecutorSafe("cpsdisplay", new cpsdisplay());
+        setExecutorSafe("bangift", new bangift());
+        setExecutorSafe("ranks", new ranks());
+        setExecutorSafe("status", new status());
+        setExecutorSafe("cps", new cps(audiences));
     }
 
     public static void registerListeners(Listener... listeners) {

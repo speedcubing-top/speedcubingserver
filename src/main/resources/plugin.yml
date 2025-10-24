@@ -54,6 +54,8 @@ commands:
     usage: /ranks
   music:
     usage: /music
+  cps:
+    usage: /cps <player>
 
 depend:
   - speedcubingLib
