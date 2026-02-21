@@ -39,7 +39,7 @@ public class SingleListen implements Listener {
             e.setCancelled(true);
         else if (e.getReason().equals("Timed out")) {
             e.setCancelled(true);
-            e.getPlayer().sendMessage("cancelled timed out");
+            e.getPlayer().sendMessage("You were disconnected: Timed out.");
         }
     }
 

@@ -20,7 +20,7 @@ public class cpsdisplay implements CommandExecutor {
         String target = strings[0];
         Player player = Bukkit.getPlayerExact(target);
         if (player == null) {
-            commandSender.sendMessage("DNE");
+            commandSender.sendMessage("Player not found.");
             return true;
         }
         update(player);

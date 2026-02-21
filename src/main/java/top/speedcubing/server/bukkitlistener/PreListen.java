@@ -242,7 +242,7 @@ public class PreListen implements Listener {
                     @Override
                     public void run() {
                         String s = DateTimeFormatter.ofPattern("HH:mm").format(now);
-                        player.sendMessage("§cCurrent time is " + s + " ,Please take a rest.");
+                        player.sendMessage("§cCurrent time is " + s + ". Please take a break.");
                         for (User u : User.getUsers()) {
                             howToWin(u.player);
                         }

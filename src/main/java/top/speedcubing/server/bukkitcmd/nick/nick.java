@@ -124,7 +124,7 @@ public class nick implements CommandExecutor, Listener {
                 } else if (strings[0].equalsIgnoreCase("reuse")) {
                     SQLRow result = User.getUser(commandSender).dbSelect("nickname,nickpriority");
                     if (result.getString(0).isEmpty()) {
-                        commandSender.sendMessage("You didn't nicked before! please use /nick <nickname>");
+                        commandSender.sendMessage("You haven't used a nick before. Please use /nick <nickname>");
                     } else if (result.getString(0).equals(commandSender.getName())) {
                         User.getUser(commandSender).sendMessage("%lang_nick_already%");
                     } else {
@@ -148,7 +148,7 @@ public class nick implements CommandExecutor, Listener {
                     if (Rank.rankByName.containsKey(strings[1].toLowerCase())) {
                         nickCheck(user, name, user.player, strings[1].toLowerCase(), false);
                     } else
-                        user.sendMessage("%lang_rank_unknown");
+                        user.sendMessage("%lang_rank_unknown%");
                 } else commandSender.sendMessage("/nick <nickname>\n/nick (use the previous nick)");
             } else if (strings.length == 3) {
                 User user = User.getUser(commandSender);

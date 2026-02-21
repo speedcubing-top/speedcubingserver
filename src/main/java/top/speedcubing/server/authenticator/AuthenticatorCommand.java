@@ -21,7 +21,7 @@ public class AuthenticatorCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         if (Bukkit.getServerName().equalsIgnoreCase("limbo")) {
-            sender.sendMessage("§c2FA is disabled at here");
+            sender.sendMessage("§c2FA is disabled here.");
             Player player = (Player) sender;
             player.performCommand("l");
             return true;
@@ -31,7 +31,7 @@ public class AuthenticatorCommand implements CommandExecutor {
             return true;
         } else if (args.length == 1) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage("§cThis command is player only.");
+                sender.sendMessage("§cThis command can only be used by players.");
                 return true;
             }
 
@@ -43,7 +43,7 @@ public class AuthenticatorCommand implements CommandExecutor {
             if (StringUtils.isInt(code)) {
                 if (code.length() == 6) {
                     if (auth.hasSessions()) {
-                        player.sendMessage("§aYou have successfully authenticated");
+                            player.sendMessage("§aYou have successfully authenticated");
                         return true;
                     }
                     if (auth.hasKey()) {
@@ -52,7 +52,7 @@ public class AuthenticatorCommand implements CommandExecutor {
                             auth.setSession(true);
                             player.sendMessage("§aYou have successfully authenticated");
                         } else {
-                            player.sendMessage("§cThe key you entered was not valid, please try again");
+                            player.sendMessage("§cThe key you entered is not valid. Please try again.");
                             if (verifedCount.containsKey(player.getUniqueId())) {
                                 Integer score = verifedCount.get(player.getUniqueId());
                                 if (score != 10) {
@@ -65,8 +65,8 @@ public class AuthenticatorCommand implements CommandExecutor {
                                 verifedCount.put(player.getUniqueId(), 1);
                             }
                         }
-                    } else {
-                        player.sendMessage("§cYou don't have key, Please use /2fa setup <code>");
+                        } else {
+                        player.sendMessage("§cYou don't have a key. Please use /2fa setup <code>.");
                     }
                 } else {
                     player.sendMessage("§cInvalid key entered");
@@ -93,27 +93,27 @@ public class AuthenticatorCommand implements CommandExecutor {
                                 String key = auth.noKey;
                                 if (AuthUtils.authorize(key, Integer.parseInt(code))) {
                                     auth.setKey(key);
-                                    player.sendMessage("§a2FA Successfully set up.");
+                                    player.sendMessage("§a2FA successfully set up.");
                                     removeMap(player);
                                     auth.noKey = null;
                                 } else {
                                     player.sendMessage("§cInvalid key entered.");
                                 }
                             } else {
-                                player.sendMessage("§cAn error occurred. Please contact staff");
+                                player.sendMessage("§cAn error occurred. Please contact staff.");
                             }
                         } else {
                             player.sendMessage("§cInvalid key entered");
                         }
                     } else {
-                        player.sendMessage("§c2FA is already set up, `/2fa <code>` to authenticate yourself");
+                        player.sendMessage("§c2FA is already set up. Use `/2fa <code>` to authenticate yourself.");
                     }
                 } else {
-                    player.sendMessage("§c2FA is disabled");
+                    player.sendMessage("§c2FA is disabled.");
                 }
             } else if (args[0].equalsIgnoreCase("reset")) {
                 if (sender instanceof Player) {
-                    sender.sendMessage("§cThis command is console only.");
+                    sender.sendMessage("§cThis command can only be used from the console.");
                     return true;
                 }
 

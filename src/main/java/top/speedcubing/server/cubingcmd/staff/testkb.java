@@ -19,7 +19,7 @@ public class testkb extends CubingCommand {
             case 1 -> {
                 Player player = Bukkit.getPlayer(args[0]);
                 if (player == null)
-                    commandSender.sendMessage("player not found in this server");
+                    commandSender.sendMessage("Player not found on this server.");
                 else
                     test(0.1, 0.1, 0.1, player, commandSender);
                 break;
@@ -27,12 +27,12 @@ public class testkb extends CubingCommand {
             case 4 -> {
                 Player player = Bukkit.getPlayer(args[0]);
                 if (player == null)
-                    commandSender.sendMessage("player not found in this server");
+                    commandSender.sendMessage("Player not found on this server.");
                 else
                     try {
                         test(Double.parseDouble(args[1]), Double.parseDouble(args[2]), Double.parseDouble(args[3]), player, commandSender);
                     } catch (Exception e) {
-                        commandSender.sendMessage("invalid number");
+                        commandSender.sendMessage("Invalid number.");
                     }
             }
             default -> {

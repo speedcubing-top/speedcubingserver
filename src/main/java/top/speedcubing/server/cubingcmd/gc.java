@@ -18,12 +18,12 @@ public class gc extends CubingCommand {
         sender.sendMessage("Before: " + getMemoryUsageInfo());
         System.gc();
         sender.sendMessage("After: " + getMemoryUsageInfo());
-        sender.sendMessage("Elapse: " + (System.currentTimeMillis() - t) + "ms");
+        sender.sendMessage("Elapsed: " + (System.currentTimeMillis() - t) + "ms");
     }
 
     public static String getMemoryUsageInfo() {
         MemoryUsage usage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        return ("Used: " + usage.getUsed() / 1048576 + " mib, Heap: " + usage.getCommitted() / 1048576 + " mib" + ", Max: " + SystemUtils.getXmx() / 1048576 + " mib");
+        return ("Used: " + usage.getUsed() / 1048576 + " MiB, Committed: " + usage.getCommitted() / 1048576 + " MiB" + ", Max: " + SystemUtils.getXmx() / 1048576 + " MiB");
     }
 }
 
