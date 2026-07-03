@@ -1,13 +1,11 @@
 package top.speedcubing.server;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -21,14 +19,13 @@ import org.spigotmc.RestartCommand;
 import org.spigotmc.SpigotConfig;
 import top.speedcubing.common.CommonLib;
 import top.speedcubing.common.database.Database;
-import top.speedcubing.common.io.SocketReader;
+import top.speedcubing.common.io.RedisManager;
 import top.speedcubing.common.server.MinecraftProxy;
 import top.speedcubing.lib.api.mojang.ProfileSkin;
 import top.speedcubing.lib.eventbus.CubingEventManager;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.lib.utils.SystemUtils;
-import top.speedcubing.lib.utils.internet.HostAndPort;
 import top.speedcubing.server.authenticator.AuthenticatorCommand;
 import top.speedcubing.server.bukkitcmd.discord;
 import top.speedcubing.server.bukkitcmd.getitemtype;
@@ -61,6 +58,7 @@ import top.speedcubing.server.cubinglistener.SocketRead;
 import top.speedcubing.server.lang.LanguageSystem;
 import top.speedcubing.server.login.BungeePacket;
 import top.speedcubing.server.player.User;
+import top.speedcubing.server.permissions.LuckPermsHook;
 import top.speedcubing.server.system.command.CubingCommandLoader;
 import top.speedcubing.server.utils.CPSMonitor;
 import top.speedcubing.server.utils.LogListener;
@@ -112,10 +110,12 @@ public class speedcubingServer extends JavaPlugin {
         registerListeners(new PreListen(), new PostListen(), new SingleListen(), new history(), new sendpacket(), new music(), new nicklogs());
 
         CommonLib.init(getLogger());
+        LuckPermsHook.init(getLogger());
 
         Configuration.reload();
 
-        new SocketReader(new HostAndPort("0.0.0.0", Bukkit.getPort() + 1000));
+        // Subscribe to our own Redis channel using the Bukkit server name.
+        RedisManager.subscribe(Bukkit.getServerName());
 
         LanguageSystem.init();
 
@@ -188,7 +188,7 @@ public class speedcubingServer extends JavaPlugin {
         try (SQLConnection connection = Database.getSystem()) {
             connection.update(
                     "servers",
-                    "onlinecount=-1,ram_max=-1,ram_heap=-1,ram_used=-1,tps1=-1,tps2=-1,tps3=-1",
+                    "onlinecount=-1,ram_max=-1,ram_heap=-1,ram_used=-1,mspt=-1,tps1=-1,tps2=-1,tps3=-1",
                     "name='" + Bukkit.getServerName() + "'"
             );
         }
@@ -238,8 +238,8 @@ public class speedcubingServer extends JavaPlugin {
         }
     }
 
-    public static CompletableFuture<DataInputStream> writeToInternal(byte[] b) {
-        return MinecraftProxy.getProxy("internal").write(b);
+    public static void writeToInternal(byte[] b) {
+        MinecraftProxy.getProxy("internal").write(b);
     }
 
     public static void restart() {

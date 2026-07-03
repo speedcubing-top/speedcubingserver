@@ -1,7 +1,8 @@
 package top.speedcubing.server.cubinglistener;
 
 import com.mojang.authlib.GameProfile;
-import java.util.Arrays;
+import com.mojang.authlib.properties.Property;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -11,13 +12,11 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutMapChunkBulk;
 import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_8_R3.PacketPlayOutStatistic;
-import net.minecraft.server.v1_8_R3.PacketPlayOutTabComplete;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import top.speedcubing.lib.bukkit.events.packet.PlayOutEvent;
 import top.speedcubing.lib.eventbus.CubingEventHandler;
 import top.speedcubing.lib.utils.ReflectionUtils;
 import top.speedcubing.server.bukkitcmd.trolls.sendpacket;
-import top.speedcubing.server.events.player.HubEvent;
 import top.speedcubing.server.events.player.PlayerClientTickEvent;
 import top.speedcubing.server.player.User;
 
@@ -25,22 +24,9 @@ public class PlayOut {
 
     @CubingEventHandler
     public void PlayOutEvent(PlayOutEvent e) {
-//        if (!(e.getPacket() instanceof PacketPlayOutScoreboardTeam) && !(e.getPacket() instanceof PacketPlayOutNamedEntitySpawn)
-//            && !(e.getPacket() instanceof PacketPlayOutPlayerInfo) && !(e.getPacket() instanceof PacketPlayOutMapChunk)
-//            && !(e.getPacket() instanceof PacketPlayOutMapChunkBulk) && !(e.getPacket() instanceof PacketPlayOutTabComplete)
-//            && !(e.getPacket() instanceof PacketPlayOutStatistic) && !(e.getPacket() instanceof PacketPlayOutEntityMetadata)
-//            && !(e.getPacket() instanceof PacketPlayOutTileEntityData) && !(e.getPacket() instanceof PacketPlayOutSpawnEntityLiving)
-//            && !(e.getPacket() instanceof PacketPlayOutSetSlot) && !(e.getPacket() instanceof PacketPlayOutKeepAlive)
-//            && !(e.getPacket() instanceof PacketPlayOutHandler) && !(e.getPacket() instanceof PacketPlayOutUpdateTime)
-//            && !(e.getPacket() instanceof PacketPlayOutUpdateAttributes)) {
-//            System.out.println(e.getPacket().getClass().getSimpleName());
-//        }
         if (e.getPacket() instanceof PacketPlayOutStatistic packet) {
             Map<?, Integer> stats = (Map<?, Integer>) ReflectionUtils.getField(packet, "a");
             stats.replaceAll((k, v) -> 0);
-        } else if (e.getPacket() instanceof PacketPlayOutTabComplete packet) {
-            String[] s = (String[]) ReflectionUtils.getField(packet, "a");
-            System.out.println("tab complete packet " + Arrays.toString(s));
         } else if (e.getPacket() instanceof PacketPlayOutMapChunk packet) {
 
             if (!sendpacket.whoWasFucked.contains(e.getPlayer()))
@@ -104,8 +90,10 @@ public class PlayOut {
                     targetID = target.calculateNickHashUUID(); //result uuid = targetID -> user -> nick uuid
                 }
 
+                Collection<Property> textures = data.a().getProperties().get("textures");
+                if (textures.isEmpty()) continue;
                 GameProfile profile = new GameProfile(targetID, target.bGetName());
-                profile.getProperties().put("textures", data.a().getProperties().get("textures").iterator().next());
+                profile.getProperties().put("textures", textures.iterator().next());
                 datas.set(i, packet.new PlayerInfoData(profile, data.b(), data.c(), data.d()));
             }
         } else if (e.getPacket() instanceof PacketPlayInFlying packet) {

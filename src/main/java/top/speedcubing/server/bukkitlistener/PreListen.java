@@ -1,14 +1,12 @@
 package top.speedcubing.server.bukkitlistener;
 
-import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -31,7 +29,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import top.speedcubing.common.database.Database;
-import top.speedcubing.common.rank.PermissionSet;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.lib.bukkit.PlayerUtils;
 import top.speedcubing.lib.bukkit.packetwrapper.OutScoreboardTeam;
@@ -43,6 +40,7 @@ import top.speedcubing.server.bukkitcmd.staff.cpsdisplay;
 import top.speedcubing.server.login.BungeePacket;
 import top.speedcubing.server.login.LoginContext;
 import top.speedcubing.server.player.User;
+import top.speedcubing.server.permissions.LuckPermsHook;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.CommandParser;
 import top.speedcubing.server.configuration.Configuration;
@@ -73,12 +71,13 @@ public class PreListen implements Listener {
     public void PlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent e) {
         Player player = e.getPlayer();
         CommandParser command = CommandParser.parse(e.getMessage());
-        User user = User.getUser(player);
-        Set<String> perms = user.permissions;
-        if (!(perms.contains("cmd." + command.command) || perms.contains("cmd.*"))) {
-            user.sendMessage(perms.contains("view." + command.command) || perms.contains("view.*") ? "%lang_general_noperm%" : "%lang_general_unknown_cmd%");
-            e.setCancelled(true);
+        String commandName = command.command.toLowerCase();
+
+        if (commandName.equals("terms") || commandName.equals("login") || commandName.equals("register")) {
+            AuthEventHandlers.onCmdExecute(e);
+            return;
         }
+
         //auth
         AuthEventHandlers.onCmdExecute(e);
     }
@@ -118,7 +117,13 @@ public class PreListen implements Listener {
                     .executeResult().get(0);
 
             int id = row.getInt("id");
-            String realRank = Rank.getRank(row.getString("priority"), id);
+            String priority = row.getString("priority");
+            String lpGroup = LuckPermsHook.getPrimaryGroup(player.getUniqueId());
+            if (lpGroup != null && !lpGroup.isBlank() && !lpGroup.equalsIgnoreCase(priority)) {
+                priority = lpGroup.toLowerCase();
+                connection.update("playersdata", "priority='" + priority + "'", "id=" + id);
+            }
+            String realRank = Rank.getRank(priority, id);
 
             // maintenance
             if (!Rank.isStaff(realRank) && Bukkit.hasWhitelist() && (row.getBoolean("serverwhitelist"))) {
@@ -141,27 +146,18 @@ public class PreListen implements Listener {
         }
     }
 
-    Map<UUID, LoginContext> ctxMap = new HashMap<>();
+    Map<UUID, LoginContext> ctxMap = new ConcurrentHashMap<>();
 
     @EventHandler(priority = EventPriority.LOW)
     public void PlayerJoinEvent(PlayerJoinEvent e) {
         e.setJoinMessage("");
         Player player = e.getPlayer();
 
-        if (!ctxMap.containsKey(player.getUniqueId())) {
+        LoginContext ctx = ctxMap.remove(player.getUniqueId());
+        if (ctx == null) {
             player.kickPlayer("error (4)");
             return;
         }
-        LoginContext ctx = ctxMap.get(player.getUniqueId());
-        ctxMap.remove(player.getUniqueId());
-
-        //Perms
-        Set<String> perms = Sets.newHashSet(ctx.getRow().getString("perms").split("\\|"));
-        perms.addAll(Rank.rankByName.get(ctx.getRealRank()).getPerms());
-        PermissionSet.findGroups(perms);
-
-        //Check Nick
-        boolean lobby = Bukkit.getServerName().equalsIgnoreCase("lobby");
 
         String displayName = player.getName();
         String displayRank = ctx.getRealRank();
@@ -171,20 +167,26 @@ public class PreListen implements Listener {
 
         boolean nickState = ctx.getRow().getBoolean("nicked");
 
-        if (lobby) {
+        if (nickState) {
+            String lpDisplayRank = LuckPermsHook.getMeta(player.getUniqueId(), "displayrank");
+            String lpDisplayName = LuckPermsHook.getMeta(player.getUniqueId(), "displayname");
+            displayRank = lpDisplayRank == null || lpDisplayRank.isBlank() ? ctx.getRow().getString("nickpriority") : lpDisplayRank;
+            displayName = lpDisplayName == null || lpDisplayName.isBlank() ? ctx.getRow().getString("nickname") : lpDisplayName;
+        } else {
             displayRank = ctx.getRealRank();
             displayName = ctx.getRow().getString("name");
-        } else {
-            if (nickState) {
-                displayRank = ctx.getRow().getString("nickpriority");
-                displayName = ctx.getRow().getString("nickname");
-            }
-            skinValue = ctx.getRow().getString("skinvalue");
-            skinSignature = ctx.getRow().getString("skinsignature");
+        }
+
+        if (!Bukkit.getServerName().equalsIgnoreCase("lobby")) {
+            String dbSkinValue = ctx.getRow().getString("skinvalue");
+            String dbSkinSignature = ctx.getRow().getString("skinsignature");
+            skinValue = dbSkinValue == null ? "" : dbSkinValue;
+            skinSignature = dbSkinSignature == null ? "" : dbSkinSignature;
         }
 
         //User
-        User user = new User(player, displayRank, displayName, perms, ctx);
+        User user = new User(player, displayRank, displayName, ctx);
+        user.refreshRankFromLuckPerms();
 
         //modify things
         GameProfile profile = ((CraftPlayer) player).getProfile();
@@ -213,7 +215,7 @@ public class PreListen implements Listener {
 
         //nick
         if (user.nicked())
-            user.sendPacket(new OutScoreboardTeam().a(Rank.getCode(user.realRank) + RankSystem.playerNameEncode(user.realName)).c(Rank.getFormat(user.realRank, user.id).getPrefix()).d(user.getGuildTag(true)).g(Collections.singletonList(user.realName)).h(0).packet);
+            user.sendPacket(new OutScoreboardTeam().a(Rank.getCode(user.realRank) + RankSystem.playerNameEncode(user.realName)).c(user.getPrefix(true)).d(user.getGuildTag(true)).g(Collections.singletonList(user.realName)).h(0).packet);
 
         //vanish
         for (User u : User.getUsers()) {
@@ -238,7 +240,8 @@ public class PreListen implements Listener {
             LocalTime end = LocalTime.of(6, 0);
             LocalTime now = LocalTime.parse(user.getCurrentTime());
             if (now.equals(start) || now.isAfter(start) && now.isBefore(end)) {
-                new Timer().schedule(new TimerTask() {
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         String s = DateTimeFormatter.ofPattern("HH:mm").format(now);
@@ -246,6 +249,7 @@ public class PreListen implements Listener {
                         for (User u : User.getUsers()) {
                             howToWin(u.player);
                         }
+                        timer.cancel();
                     }
                 }, 1000);
             }

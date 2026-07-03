@@ -22,8 +22,12 @@ import top.speedcubing.server.speedcubingServer;
 
 public class AuthEventHandlers implements Listener {
     private static final String qrCodeURL = "https://quickchart.io/chart?chs=128x128&cht=qr&chl=otpauth://totp/%label?secret=%key";
+    private static final boolean AUTH_DISABLED = true;
 
     public static void onPlayerJoin(PlayerJoinEvent e) {
+        if (AUTH_DISABLED)
+            return;
+
         Player p = e.getPlayer();
         User user = User.getUser(p);
 
@@ -87,6 +91,9 @@ public class AuthEventHandlers implements Listener {
     }
 
     public static void onInteraction(PlayerInteractEvent e) {
+        if (AUTH_DISABLED)
+            return;
+
         User user = User.getUser(e.getPlayer());
         AuthData auth = AuthData.map.get(user);
 
@@ -108,6 +115,9 @@ public class AuthEventHandlers implements Listener {
     //this event is blocked paper command, proxy command blocker in speedcubingProxy
 
     public static void onCmdExecute(PlayerCommandPreprocessEvent e) {
+        if (AUTH_DISABLED)
+            return;
+
         AuthData auth = AuthData.map.get(User.getUser(e.getPlayer()));
 
         if (auth == null)
@@ -128,6 +138,9 @@ public class AuthEventHandlers implements Listener {
 
 
     public static void onInventoryOpen(InventoryOpenEvent e) {
+        if (AUTH_DISABLED)
+            return;
+
         AuthData auth = AuthData.map.get(User.getUser(e.getPlayer()));
 
         if (auth == null)
@@ -148,6 +161,9 @@ public class AuthEventHandlers implements Listener {
     }
 
     public static void onPlayerMove(PlayerMoveEvent e) {
+        if (AUTH_DISABLED)
+            return;
+
         AuthData auth = AuthData.map.get(User.getUser(e.getPlayer()));
 
         if (auth == null)

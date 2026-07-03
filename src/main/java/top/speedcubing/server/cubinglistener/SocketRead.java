@@ -39,8 +39,11 @@ public class SocketRead {
                 int id = data.readInt();
                 if (id == 0)
                     User.getUsers().forEach(a -> a.sendPacket(packet));
-                else
-                    User.getUser(id).sendPacket(packet);
+                else {
+                    User user = User.getUser(id);
+                    if (user != null)
+                        user.sendPacket(packet);
+                }
             }
             case "crash" -> {
                 int id = data.readInt();
@@ -50,12 +53,29 @@ public class SocketRead {
                         a.isCrashed = true;
                     });
                 } else {
-                    PlayerUtils.crashAll(User.getUser(id).player);
-                    User.getUser(id).isCrashed = true;
+                    User user = User.getUser(id);
+                    if (user != null) {
+                        PlayerUtils.crashAll(user.player);
+                        user.isCrashed = true;
+                    }
                 }
             }
             case "velo" -> {
-                User.getUser(data.readInt()).velocities = data.readBoolean() ? new double[]{data.readDouble(), data.readDouble()} : null;
+                int userId = data.readInt();
+                User user = User.getUser(userId);
+                System.out.println("[DEBUG-VELO] Received velo packet for userId=" + userId + ", user=" + (user != null ? user.player.getName() : "null"));
+                if (user != null) {
+                    boolean enabled = data.readBoolean();
+                    if (enabled) {
+                        double hor = data.readDouble();
+                        double ver = data.readDouble();
+                        user.velocities = new double[]{hor, ver};
+                        System.out.println("[DEBUG-VELO] Set velocities for " + user.player.getName() + ": hor=" + hor + ", ver=" + ver);
+                    } else {
+                        user.velocities = null;
+                        System.out.println("[DEBUG-VELO] Cleared velocities for " + user.player.getName());
+                    }
+                }
             }
             case "vanish" -> {
                 User user = User.getUser(data.readInt());

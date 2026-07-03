@@ -31,7 +31,8 @@ public class cpsdisplay implements CommandExecutor {
         User user = User.getUser(player);
         if (user.cpsHologram != null) {
             user.removeCPSHologram();
-            user.dbUpdate("status=" + null);
+            user.status = "null";
+            user.dbUpdate("status=NULL");
             return;
         }
         Hologram h = new Hologram("", true, true).world(player.getWorld().getName());

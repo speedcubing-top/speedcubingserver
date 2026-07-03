@@ -25,7 +25,7 @@ public class PlayIn {
             return;
         }
         if (User.getUser(e.getPlayer()).isCrashed) {
-            if (!(e.getPacket() instanceof PacketPlayInKeepAlive || !(e.getPacket() instanceof PacketPlayInCustomPayload))) {
+            if (!(e.getPacket() instanceof PacketPlayInKeepAlive) && !(e.getPacket() instanceof PacketPlayInCustomPayload)) {
                 e.setCancelled(true);
             }
         }
@@ -34,9 +34,6 @@ public class PlayIn {
             CommandParser command = CommandParser.parse(s);
             User user = User.getUser(e.getPlayer());
             user.lastTabbed = command.command;
-            if (!user.hasPermission("cmd." + command) && !user.hasPermission("cmd.*")) {
-                e.setCancelled(true);
-            }
         } else if (e.getPacket() instanceof PacketPlayInCustomPayload packet) {
             if (packet.a().equals("labymod3:main")) {
                 PacketDataSerializer serializer = packet.b();
@@ -50,7 +47,6 @@ public class PlayIn {
                 String json = serializer.c(10000);
 
                 JsonObject parser = JsonParser.parseString(json).getAsJsonObject();
-                System.out.println(parser);
             }
         } else if (e.getPacket() instanceof PacketPlayInUpdateSign packet) {
             IChatBaseComponent[] components = packet.b();

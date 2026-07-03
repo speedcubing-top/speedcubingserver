@@ -49,9 +49,8 @@ public class Chat {
         Lang filtered = format.clone().param(filteredMessage);
 
         try (SQLConnection connection = Database.getCubing()) {
-            SQLResult result = connection.select("uuid")
-                    .from("ignorelist")
-                    .where("target='" + sender.getUniqueId() + "'")
+            SQLResult result = connection.prepare("SELECT uuid FROM ignorelist WHERE target=?")
+                    .setString(1, sender.getUniqueId().toString())
                     .executeResult();
             User user;
             c:

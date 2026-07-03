@@ -1,13 +1,13 @@
 package top.speedcubing.server.authenticator;
 
 import com.google.common.base.Preconditions;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.server.player.User;
 
 public class AuthData {
-    public static Map<User, AuthData> map = new HashMap<>();
+    public static Map<User, AuthData> map = new ConcurrentHashMap<>();
     private final User user;
     private final boolean isAuthBypass;
     private String key;

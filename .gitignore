@@ -3,3 +3,7 @@
 /out
 dependency-reduced-pom.xml
 *.iml
+.classpath
+.factorypath
+.project
+.settings/

@@ -144,9 +144,8 @@ public class history implements CommandExecutor, Listener {
 
     private boolean openHistoryGui(Player sender, String name) {
         try (SQLConnection connection = Database.getCubing()) {
-            SQLResult result = connection.select("name,profile_textures_value,uuid")
-                    .from("playersdata")
-                    .where("name='" + name + "'")
+            SQLResult result = connection.prepare("SELECT name,profile_textures_value,uuid FROM playersdata WHERE name=?")
+                    .setString(1, name)
                     .executeResult();
             if (result.isEmpty())
                 return false;
@@ -190,11 +189,16 @@ public class history implements CommandExecutor, Listener {
                 BanPunishment punishment = datas.get(i);
                 long remain = getPunishRemain(punishment.at(), punishment.days(), punishment.pardon(), SystemUtils.getCurrentSecond());
                 try (SQLConnection connection = Database.getCubing()) {
+                    String operatorName = punishment.operator();
+                    if (operatorName.length() == 36) {
+                        SQLResult opResult = connection.prepare("SELECT name FROM playersdata WHERE uuid=?")
+                                .setString(1, operatorName)
+                                .executeResult();
+                        operatorName = opResult.isEmpty() ? operatorName : opResult.getString();
+                    }
                     inv.setItem(itemIndex++, new ItemBuilder(Material.WOOL).name("§eBanned logs")
                             .addLore("§eName: §a" + values[0],
-                                    "§eOperator: §a" + (punishment.operator().length() == 36 ?
-                                            connection.select("name").from("playersdata").where("uuid='" + punishment.operator() + "'").executeResult().getString() :
-                                            punishment.operator()),
+                                    "§eOperator: §a" + operatorName,
                                     "§eReason: §a" + punishment.reason(),
                                     "§eBanID: §a" + punishment.id(),
                                     "§eDuration: §a" + punishment.days(),
@@ -288,9 +292,8 @@ public class history implements CommandExecutor, Listener {
     private List<BanPunishment> getBanPunishmentHistory(String uuid) {
         List<BanPunishment> resultList = new ArrayList<>();
         try (SQLConnection connection = Database.getCubing();
-             ResultSet resultSet = connection.select("id,uuid,ip,hideid,at,reason,operator,days,pardon,pardonat")
-                     .from("banlist")
-                     .where("uuid='" + uuid + "'")
+             ResultSet resultSet = connection.prepare("SELECT id,uuid,ip,hideid,at,reason,operator,days,pardon,pardonat FROM banlist WHERE uuid=?")
+                     .setString(1, uuid)
                      .executeQuery()) {
 
             while (resultSet.next()) {
@@ -320,9 +323,8 @@ public class history implements CommandExecutor, Listener {
     private List<MutePunishment> getMutePunishmentHistory(String uuid) {
         List<MutePunishment> resultList = new ArrayList<>();
         try (SQLConnection connection = Database.getCubing();
-             ResultSet resultSet = connection.select("id,uuid,at,reason,operator,days,pardon,pardonat")
-                     .from("mutelist")
-                     .where("uuid='" + uuid + "'")
+             ResultSet resultSet = connection.prepare("SELECT id,uuid,at,reason,operator,days,pardon,pardonat FROM mutelist WHERE uuid=?")
+                     .setString(1, uuid)
                      .executeQuery()) {
 
             while (resultSet.next()) {

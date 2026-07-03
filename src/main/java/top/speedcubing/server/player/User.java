@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Queue;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -50,6 +49,7 @@ import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.lang.LangInv;
 import top.speedcubing.server.lang.LangItem;
 import top.speedcubing.server.login.LoginContext;
+import top.speedcubing.server.permissions.LuckPermsHook;
 import top.speedcubing.server.utils.RankSystem;
 
 public class User extends JoinedPlayer {
@@ -77,7 +77,6 @@ public class User extends JoinedPlayer {
     public final Player player;
     public Hologram cpsHologram;
     public String lastTabbed;
-    public Set<String> permissions;
     public double[] velocities;
     public MinecraftProxy proxy;
     public boolean chatFilt;
@@ -93,15 +92,15 @@ public class User extends JoinedPlayer {
     public Skin defaultSkin;
     public boolean isCrashed;
 
-    public User(Player player, String displayRank, String displayName, Set<String> permissions, LoginContext ctx) {
+    public User(Player player, String displayRank, String displayName, LoginContext ctx) {
         super(player.getUniqueId(), ctx.getRow().getString("name"), ctx.getRow().getInt("id"), ctx.getRow().getString("ip"), ctx.getRealRank(), displayRank, displayName, ctx.getRow());
         this.player = player;
-        this.permissions = permissions;
         this.listened = ctx.getBungePacket().cps;
         this.chatFilt = ctx.getRow().getBoolean("chatfilt");
         this.vanished = ctx.getBungePacket().vanished;
         this.proxy = ctx.getBungePacket().proxy;
-        this.status = dbSelect("status").getString(0) == null ? "null" : dbSelect("status").getString(0);
+        String statusValue = dbSelect("status").getString(0);
+        this.status = statusValue == null ? "null" : statusValue;
         this.defaultSkin = new Skin(ctx.getRow().getString("profile_textures_value"), ctx.getRow().getString("profile_textures_signature"));
         this.isCrashed = false;
         if (!ctx.getBungePacket().hor.equals("null"))
@@ -119,7 +118,9 @@ public class User extends JoinedPlayer {
     }
 
     public Property getTextures() {
-        return toNMS().getProfile().getProperties().get("textures").iterator().next();
+        Collection<Property> textures = toNMS().getProfile().getProperties().get("textures");
+        if (textures.isEmpty()) return null;
+        return textures.iterator().next();
     }
 
     public void updateSkin(Skin skin, String target) {
@@ -128,7 +129,7 @@ public class User extends JoinedPlayer {
         } else uploadSkin(skin);
 
         Property property = getTextures();
-        if (property.getValue().equals(skin.getValue()) && property.getSignature().equals(skin.getSignature())) {
+        if (property != null && property.getValue().equals(skin.getValue()) && property.getSignature().equals(skin.getSignature())) {
             return;
         }
 
@@ -160,24 +161,30 @@ public class User extends JoinedPlayer {
     //perm
 
     public boolean hasPermission(String perm) {
-        perm = perm.toLowerCase();
-        if (permissions.contains(perm))
-            return true;
-        String[] s = perm.split("\\.");
-        StringBuilder def = new StringBuilder(s[0]);
-        if (permissions.contains(def + ".*"))
-            return true;
-        for (int i = 1; i < s.length - 1; i++) {
-            def.append(".").append(s[i]);
-            if (permissions.contains(def + ".*"))
-                return true;
+        return player.hasPermission(perm.toLowerCase());
+    }
+
+    public void refreshRankFromLuckPerms() {
+        String lpGroup = LuckPermsHook.getPrimaryGroup(bGetUniqueId());
+        if (lpGroup == null || lpGroup.isBlank()) {
+            return;
         }
-        return false;
+        String resolved = lpGroup.toLowerCase();
+        if (!resolved.equalsIgnoreCase(realRank)) {
+            realRank = resolved;
+            dbUpdate("priority='" + resolved + "'");
+        }
     }
 
 
     //RANK FORMAT
     public RankFormat getFormat(boolean real) {
+        if (real) {
+            String prefix = LuckPermsHook.getPrefix(bGetUniqueId());
+            if (prefix != null) {
+                return new RankFormat(prefix, "§f");
+            }
+        }
         return Rank.getFormat(real ? realRank : displayRank, id);
     }
 
@@ -214,7 +221,7 @@ public class User extends JoinedPlayer {
     }
 
     public String getCurrentTime() {
-        ZoneId zone = ZoneId.of(timeZone);
+        ZoneId zone = (timeZone == null || timeZone.isEmpty()) ? ZoneId.of("Asia/Taipei") : ZoneId.of(timeZone);
         return java.time.LocalTime.now(zone).toString();
     }
 
@@ -301,7 +308,13 @@ public class User extends JoinedPlayer {
     public String getGuildTag(boolean nick) {
 
         try (SQLConnection connection = Database.getCubing()) {
-            SQLResult result = connection.select("tag").from("guild").where("name='" + getGuild() + "'").executeResult();
+            String guild = getGuild();
+            if (guild == null || guild.isEmpty()) {
+                return "";
+            }
+            SQLResult result = connection.prepare("SELECT tag FROM guild WHERE name=?")
+                    .setString(1, guild)
+                    .executeResult();
             if (!result.isEmpty()) {
                 String tag = result.getString();
                 return nick ? "" : (tag == null ? "" : " §6[" + tag + "]");
@@ -314,7 +327,7 @@ public class User extends JoinedPlayer {
     public void createTeamPacket() {
         String extracted = Rank.getCode(displayRank) + RankSystem.playerNameEncode(bGetName());
         this.leavePacket = new OutScoreboardTeam().a(extracted).h(1).packet;
-        this.joinPacket = new OutScoreboardTeam().a(extracted).c(getFormat(false).getPrefix()).d(getGuildTag(nicked())).g(Collections.singletonList(bGetName())).h(0).packet;
+        this.joinPacket = new OutScoreboardTeam().a(extracted).c(getPrefix(false)).d(getGuildTag(nicked())).g(Collections.singletonList(bGetName())).h(0).packet;
     }
 
     public void removeCPSHologram() {
