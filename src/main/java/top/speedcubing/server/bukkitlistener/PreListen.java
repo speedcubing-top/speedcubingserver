@@ -2,8 +2,12 @@ package top.speedcubing.server.bukkitlistener;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +33,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import top.speedcubing.common.database.Database;
+import top.speedcubing.common.io.RedisManager;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.lib.bukkit.PlayerUtils;
 import top.speedcubing.lib.bukkit.packetwrapper.OutScoreboardTeam;
@@ -156,8 +161,19 @@ public class PreListen implements Listener {
     private BungeePacket waitForBungeePacket(int id) {
         long deadline = System.currentTimeMillis() + BUNGEE_PACKET_WAIT_TIMEOUT_MS;
         BungeePacket packet;
-        while ((packet = speedcubingServer.bungeePacketStorage.get(id)) == null
-                && System.currentTimeMillis() < deadline) {
+        while (System.currentTimeMillis() < deadline) {
+            packet = speedcubingServer.bungeePacketStorage.get(id);
+            if (packet != null) {
+                RedisManager.getdel(loginHandoffKey(id));
+                return packet;
+            }
+
+            packet = consumeRedisLoginHandoff(id);
+            if (packet != null) {
+                speedcubingServer.bungeePacketStorage.put(id, packet);
+                return packet;
+            }
+
             try {
                 Thread.sleep(BUNGEE_PACKET_WAIT_INTERVAL_MS);
             } catch (InterruptedException interrupted) {
@@ -165,7 +181,35 @@ public class PreListen implements Listener {
                 break;
             }
         }
-        return packet;
+        return speedcubingServer.bungeePacketStorage.get(id);
+    }
+
+    private BungeePacket consumeRedisLoginHandoff(int id) {
+        String key = loginHandoffKey(id);
+        String encoded = RedisManager.getdel(key);
+        if (encoded == null || encoded.isBlank()) {
+            return null;
+        }
+
+        try (DataInputStream data = new DataInputStream(new ByteArrayInputStream(Base64.getDecoder().decode(encoded)))) {
+            String packetId = data.readUTF();
+            int packetPlayerId = data.readInt();
+            if (!"bungee".equals(packetId) || packetPlayerId != id) {
+                speedcubingServer.getInstance().getLogger().warning(
+                        "Ignoring invalid Redis login handoff from " + key + " (packet=" + packetId
+                                + ", id=" + packetPlayerId + ", expected=" + id + ")");
+                return null;
+            }
+            return new BungeePacket(data.readUTF(), data.readUTF(), data.readUTF(), data.readBoolean());
+        } catch (IOException | IllegalArgumentException ex) {
+            speedcubingServer.getInstance().getLogger().warning(
+                    "Failed to parse Redis login handoff from " + key + ": " + ex.getMessage());
+            return null;
+        }
+    }
+
+    private String loginHandoffKey(int id) {
+        return "sc:login:" + Bukkit.getServerName() + ":" + id;
     }
 
     @EventHandler(priority = EventPriority.LOW)
