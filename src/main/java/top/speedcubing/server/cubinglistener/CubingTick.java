@@ -1,8 +1,5 @@
 package top.speedcubing.server.cubinglistener;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryUsage;
-import net.minecraft.server.v1_8_R3.MinecraftServer;
 import org.bukkit.Bukkit;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.events.ConfigReloadEvent;
@@ -21,47 +18,15 @@ public class CubingTick {
     public void cubingTickEvent(CubingTickEvent e) {
         long t = System.currentTimeMillis();
 
-        // update server status
-        MemoryUsage usage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        double[] tps = MinecraftServer.getServer().recentTps;
-        long[] tickDurationsNs = MinecraftServer.getServer().h;
         int onlineCount = Bukkit.getOnlinePlayers().size();
         String serverName = Bukkit.getServerName();
-        double mspt = 0.0;
-        int sampleCount = 0;
-
-        for (long durationNs : tickDurationsNs) {
-            if (durationNs > 0L) {
-                mspt += durationNs / 1_000_000.0;
-                sampleCount++;
-            }
-        }
-        if (sampleCount > 0) {
-            mspt /= sampleCount;
-        }
 
         RedisManager.hset("sc:servercounts", serverName, String.valueOf(onlineCount));
-        RedisManager.hset(
-                "sc:servermetrics",
-                serverName,
-                onlineCount + "," +
-                        (usage.getCommitted() / 1048576) + "," +
-                        (usage.getUsed() / 1048576) + "," +
-                        (Math.round(tps[0] * 100.0) / 100.0) + "," +
-                        (Math.round(tps[1] * 100.0) / 100.0) + "," +
-                        (Math.round(tps[2] * 100.0) / 100.0)
-        );
 
         try (SQLConnection connection = Database.getSystem()) {
             connection.update(
                     "servers",
-                    "onlinecount=" + onlineCount +
-                            ",ram_heap=" + usage.getCommitted() / 1048576 +
-                            ",ram_used=" + usage.getUsed() / 1048576 +
-                            ",mspt=" + Math.round(mspt * 100.0) / 100.0 +
-                            ",tps1=" + Math.round(tps[0] * 100.0) / 100.0 +
-                            ",tps2=" + Math.round(tps[1] * 100.0) / 100.0 +
-                            ",tps3=" + Math.round(tps[2] * 100.0) / 100.0,
+                    "onlinecount=" + onlineCount,
                     "name='" + serverName + "'"
             );
         }
