@@ -100,6 +100,8 @@ public class AuthenticatorCommand implements CommandExecutor {
                                     player.sendMessage("§cInvalid key entered.");
                                 }
                             } else {
+                                Bukkit.getLogger().warning("2FA setup failed for " + player.getName()
+                                        + " (" + player.getUniqueId() + "): pending setup key is missing from AuthData.");
                                 player.sendMessage("§cAn error occurred. Please contact staff.");
                             }
                         } else {

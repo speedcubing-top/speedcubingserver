@@ -2,7 +2,6 @@ package top.speedcubing.server;
 
 import java.io.File;
 import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,7 +69,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 public class speedcubingServer extends JavaPlugin {
     public static final Pattern nameRegex = Pattern.compile("^\\w{3,16}$");
     public static final Pattern legacyNameRegex = Pattern.compile("^\\w{1,16}$");
-    public static Map<Integer, BungeePacket> bungeePacketStorage = new HashMap<>();
+    public static Map<Integer, BungeePacket> bungeePacketStorage = new ConcurrentHashMap<>();
 
     public static boolean canRestart = true; //can Timer/Quit restart server?
     public static boolean restartable = false; //is it time to restart ?

@@ -47,6 +47,8 @@ import top.speedcubing.server.configuration.Configuration;
 import top.speedcubing.server.utils.RankSystem;
 
 public class PreListen implements Listener {
+    private static final long BUNGEE_PACKET_WAIT_TIMEOUT_MS = 2000L;
+    private static final long BUNGEE_PACKET_WAIT_INTERVAL_MS = 25L;
 
     @EventHandler(priority = EventPriority.LOW)
     public void InventoryClickEvent(InventoryClickEvent e) {
@@ -134,8 +136,11 @@ public class PreListen implements Listener {
             }
 
             // bungee-data-not-found
-            BungeePacket bungePacket = speedcubingServer.bungeePacketStorage.get(id);
+            BungeePacket bungePacket = waitForBungeePacket(id);
             if (bungePacket == null) {
+                speedcubingServer.getInstance().getLogger().warning(
+                        "Missing bungee login packet for " + player.getName() + " (id=" + id
+                                + ", uuid=" + player.getUniqueId() + ", server=" + Bukkit.getServerName() + ")");
                 e.setKickMessage("§cError occurred.");
                 e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
                 return;
@@ -148,6 +153,21 @@ public class PreListen implements Listener {
 
     Map<UUID, LoginContext> ctxMap = new ConcurrentHashMap<>();
 
+    private BungeePacket waitForBungeePacket(int id) {
+        long deadline = System.currentTimeMillis() + BUNGEE_PACKET_WAIT_TIMEOUT_MS;
+        BungeePacket packet;
+        while ((packet = speedcubingServer.bungeePacketStorage.get(id)) == null
+                && System.currentTimeMillis() < deadline) {
+            try {
+                Thread.sleep(BUNGEE_PACKET_WAIT_INTERVAL_MS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return packet;
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void PlayerJoinEvent(PlayerJoinEvent e) {
         e.setJoinMessage("");
@@ -155,6 +175,9 @@ public class PreListen implements Listener {
 
         LoginContext ctx = ctxMap.remove(player.getUniqueId());
         if (ctx == null) {
+            speedcubingServer.getInstance().getLogger().warning(
+                    "Missing login context at join for " + player.getName() + " (uuid=" + player.getUniqueId()
+                            + ", server=" + Bukkit.getServerName() + ")");
             player.kickPlayer("error (4)");
             return;
         }
