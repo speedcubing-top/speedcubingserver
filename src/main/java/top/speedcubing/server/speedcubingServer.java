@@ -203,12 +203,24 @@ public class speedcubingServer extends JavaPlugin {
 
     // Null-safe command registration helper to avoid NPE if plugin.yml lacks a command entry
     private void setExecutorSafe(String name, org.bukkit.command.CommandExecutor executor) {
+        setExecutorSafe(name, executor, null);
+    }
+
+    private void setExecutorSafe(String name, org.bukkit.command.CommandExecutor executor, String permission) {
         org.bukkit.command.PluginCommand cmd = getCommand(name);
         if (cmd == null) {
             getLogger().warning("Command '" + name + "' not defined in plugin.yml, skipping registration.");
             return;
         }
+        if (permission != null) {
+            cmd.setPermission(permission);
+            cmd.setPermissionMessage("§cYou do not have permission to use this command.");
+        }
         cmd.setExecutor(executor);
+    }
+
+    private void setStaffExecutorSafe(String name, org.bukkit.command.CommandExecutor executor) {
+        setExecutorSafe(name, executor, "speedcubing.command.server." + name.toLowerCase());
     }
 
     private void registerCommands() {
@@ -216,20 +228,20 @@ public class speedcubingServer extends JavaPlugin {
         setExecutorSafe("unnick", new unnick());
         setExecutorSafe("discord", new discord());
         setExecutorSafe("hub", new hub());
-        setExecutorSafe("kaboom", new kaboom());
-        setExecutorSafe("deepfry", new deepfry());
-        setExecutorSafe("freeze", new freeze());
-        setExecutorSafe("music", new music());
+        setStaffExecutorSafe("kaboom", new kaboom());
+        setStaffExecutorSafe("deepfry", new deepfry());
+        setStaffExecutorSafe("freeze", new freeze());
+        setStaffExecutorSafe("music", new music());
         setExecutorSafe("2fa", new AuthenticatorCommand());
-        setExecutorSafe("image", new image());
-        setExecutorSafe("history", new history());
-        setExecutorSafe("getitemtype", new getitemtype());
-        setExecutorSafe("sendpacket", new sendpacket());
-        setExecutorSafe("cpsdisplay", new cpsdisplay());
-        setExecutorSafe("bangift", new bangift());
+        setStaffExecutorSafe("image", new image());
+        setStaffExecutorSafe("history", new history());
+        setStaffExecutorSafe("getitemtype", new getitemtype());
+        setStaffExecutorSafe("sendpacket", new sendpacket());
+        setStaffExecutorSafe("cpsdisplay", new cpsdisplay());
+        setStaffExecutorSafe("bangift", new bangift());
         setExecutorSafe("ranks", new ranks());
         setExecutorSafe("status", new status());
-        setExecutorSafe("cps", new cps(audiences));
+        setStaffExecutorSafe("cps", new cps(audiences));
     }
 
     public static void registerListeners(Listener... listeners) {

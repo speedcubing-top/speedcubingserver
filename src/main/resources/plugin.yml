@@ -1,6 +1,6 @@
 name: speedcubingServer
 main: top.speedcubing.server.speedcubingServer
-version: 1.0
+version: ${plugin.report.version}
 commands:
   premium:
     usage: /premium
@@ -56,6 +56,40 @@ commands:
     usage: /music
   cps:
     usage: /cps <player>
+
+permissions:
+  speedcubing.command.server.announce:
+    default: op
+  speedcubing.command.server.bangift:
+    default: op
+  speedcubing.command.server.cps:
+    default: op
+  speedcubing.command.server.cpsdisplay:
+    default: op
+  speedcubing.command.server.deepfry:
+    default: op
+  speedcubing.command.server.freeze:
+    default: op
+  speedcubing.command.server.getitemtype:
+    default: op
+  speedcubing.command.server.heal:
+    default: op
+  speedcubing.command.server.history:
+    default: op
+  speedcubing.command.server.image:
+    default: op
+  speedcubing.command.server.kaboom:
+    default: op
+  speedcubing.command.server.music:
+    default: op
+  speedcubing.command.server.nicklogs:
+    default: op
+  speedcubing.command.server.sendpacket:
+    default: op
+  speedcubing.command.server.serverconfig:
+    default: op
+  speedcubing.command.server.testkb:
+    default: op
 
 depend:
   - speedcubingLib

@@ -18,6 +18,9 @@ public class CubingCommandManager {
                 Command cmd = new Command(name) {
                     @Override
                     public boolean execute(CommandSender commandSender, String s, String[] strings) {
+                        if (!command.testPermission(commandSender)) {
+                            return true;
+                        }
                         command.execute(commandSender, s, strings);
                         return true;
                     }
@@ -27,6 +30,10 @@ public class CubingCommandManager {
                         return command.onTabComplete(sender, alias, args, location);
                     }
                 };
+                if (command.getPermission() != null) {
+                    cmd.setPermission(command.getPermission());
+                    cmd.setPermissionMessage("§cYou do not have permission to use this command.");
+                }
                 cmd.timings = co.aikar.timings.TimingsManager.getCommandTiming("minecraft", cmd);
                 knownCommands.put(name, cmd);
             }
