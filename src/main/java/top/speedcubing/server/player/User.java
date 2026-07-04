@@ -128,6 +128,10 @@ public class User extends JoinedPlayer {
             uploadSkin(new Skin("", ""));
         } else uploadSkin(skin);
 
+        if (org.bukkit.Bukkit.getServerName().equalsIgnoreCase("lobby")) {
+            return;
+        }
+
         Property property = getTextures();
         if (property != null && property.getValue().equals(skin.getValue()) && property.getSignature().equals(skin.getSignature())) {
             return;

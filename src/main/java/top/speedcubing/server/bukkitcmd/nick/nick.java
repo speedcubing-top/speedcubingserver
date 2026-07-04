@@ -2,6 +2,7 @@ package top.speedcubing.server.bukkitcmd.nick;
 
 import edu.mit.jwi.item.IIndexWord;
 import edu.mit.jwi.item.POS;
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -60,6 +61,10 @@ public class nick implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+        if (!Bukkit.getServerName().equalsIgnoreCase("lobby")) {
+            commandSender.sendMessage("§cYou can only use /nick in the lobby.");
+            return true;
+        }
         if (!((NickEvent) new NickEvent((Player) commandSender).call()).isCancelled()) {
             Player player = (Player) commandSender;
             if (strings.length == 1) {
@@ -147,7 +152,7 @@ public class nick implements CommandExecutor, Listener {
                     nickCheck(user, name, user.player, user.dbSelect("nickpriority").getString(0), false);
             } else if (strings.length == 2) {
                 User user = User.getUser(commandSender);
-                if (user.hasPermission("perm.nick.nickrank%")) {
+                if (user.hasPermission("perm.nick.nickrank")) {
                     String name = strings[0];
                     if (Rank.rankByName.containsKey(strings[1].toLowerCase())) {
                         nickCheck(user, name, user.player, strings[1].toLowerCase(), false);

@@ -234,7 +234,7 @@ public class PreListen implements Listener {
 
         boolean nickState = ctx.getRow().getBoolean("nicked");
 
-        if (nickState) {
+        if (nickState && !Bukkit.getServerName().equalsIgnoreCase("lobby")) {
             String lpDisplayRank = LuckPermsHook.getMeta(player.getUniqueId(), "displayrank");
             String lpDisplayName = LuckPermsHook.getMeta(player.getUniqueId(), "displayname");
             displayRank = lpDisplayRank == null || lpDisplayRank.isBlank() ? ctx.getRow().getString("nickpriority") : lpDisplayRank;

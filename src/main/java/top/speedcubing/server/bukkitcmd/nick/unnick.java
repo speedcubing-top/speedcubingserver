@@ -1,5 +1,6 @@
 package top.speedcubing.server.bukkitcmd.nick;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,6 +11,10 @@ import top.speedcubing.server.player.User;
 
 public class unnick implements CommandExecutor {
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
+        if (!Bukkit.getServerName().equalsIgnoreCase("lobby")) {
+            commandSender.sendMessage("§cYou can only use /unnick in the lobby.");
+            return true;
+        }
         Player player = (Player) commandSender;
 
         if (((NickEvent) new NickEvent(player).call()).isCancelled()) {

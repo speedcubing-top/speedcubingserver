@@ -10,7 +10,7 @@ public class BungeePacket {
     public final boolean vanished;
 
     public BungeePacket(String proxyName, String hor, String ver, boolean vanished) {
-        this.proxy = MinecraftProxy.getProxy(proxyName);
+        this.proxy = MinecraftProxy.getOrCreateRedisProxy(proxyName);
         this.hor = hor;
         this.ver = ver;
         this.vanished = vanished;

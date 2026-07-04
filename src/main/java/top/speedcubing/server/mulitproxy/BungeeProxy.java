@@ -8,7 +8,12 @@ public class BungeeProxy {
     public static void switchServer(int id, String server) {
         User user = User.getUser(id);
         if (user != null) {
-            user.proxy.write(new ByteArrayBuffer().writeUTF("connectionreq").writeInt(id).writeUTF("").writeUTF(server).toByteArray());
+            if (user.proxy != null) {
+                user.proxy.write(new ByteArrayBuffer().writeUTF("connectionreq").writeInt(id).writeUTF("").writeUTF(server).toByteArray());
+            } else {
+                speedcubingServer.getInstance().getLogger().warning(
+                        "Cannot switch player " + id + " to " + server + ": proxy is not set");
+            }
             return;
         }
         speedcubingServer.writeToInternal(new ByteArrayBuffer().writeUTF("connectionreq").writeInt(id).writeUTF("").writeUTF(server).toByteArray());
