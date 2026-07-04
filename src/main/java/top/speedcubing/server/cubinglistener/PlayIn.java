@@ -31,8 +31,12 @@ public class PlayIn {
         }
         if (e.getPacket() instanceof PacketPlayInTabComplete p) {
             String s = p.a();
-            CommandParser command = CommandParser.parse(s);
             User user = User.getUser(e.getPlayer());
+            if (s.startsWith("/") && !s.contains(" ") && !user.hasPermission("speedcubing.command.tabcomplete")) {
+                e.setCancelled(true);
+                return;
+            }
+            CommandParser command = CommandParser.parse(s);
             user.lastTabbed = command.command;
         } else if (e.getPacket() instanceof PacketPlayInCustomPayload packet) {
             if (packet.a().equals("labymod3:main")) {
