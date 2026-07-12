@@ -1,15 +1,6 @@
 package top.speedcubing.server.player;
 
 import com.mojang.authlib.properties.Property;
-import java.time.ZoneId;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.Packet;
@@ -43,6 +34,7 @@ import top.speedcubing.lib.bukkit.packetwrapper.OutScoreboardTeam;
 import top.speedcubing.lib.minecraft.text.ComponentText;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.SQL.SQLResult;
+import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.lib.utils.UUIDUtils;
 import top.speedcubing.lib.utils.bytes.ByteArrayBuffer;
 import top.speedcubing.lib.utils.bytes.NumberConversion;
@@ -51,6 +43,16 @@ import top.speedcubing.server.lang.LangInv;
 import top.speedcubing.server.lang.LangItem;
 import top.speedcubing.server.login.LoginContext;
 import top.speedcubing.server.utils.RankSystem;
+
+import java.time.ZoneId;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class User extends JoinedPlayer {
 
@@ -101,11 +103,17 @@ public class User extends JoinedPlayer {
         this.chatFilt = ctx.getRow().getBoolean("chatfilt");
         this.vanished = ctx.getBungePacket().vanished;
         this.proxy = ctx.getBungePacket().proxy;
-        this.status = dbSelect("status").getString(0) == null ? "null" : dbSelect("status").getString(0);
+        String status = ctx.getRow().getString("status");
+        this.status = status == null ? "null" : status;
         this.defaultSkin = new Skin(ctx.getRow().getString("profile_textures_value"), ctx.getRow().getString("profile_textures_signature"));
         this.isCrashed = false;
-        if (!ctx.getBungePacket().hor.equals("null"))
-            this.velocities = new double[]{Double.parseDouble(ctx.getBungePacket().hor), Double.parseDouble(ctx.getBungePacket().ver)};
+
+        try (SQLConnection connection = Database.getCubing()) {
+            SQLRow online = connection.select("*").from("onlineplayer").where("id=" + id).executeResult().get(0);
+            if (online.getBoolean("velo_enabled")) {
+                this.velocities = new double[]{online.getDouble("velo_hor"), online.getDouble("velo_ver")};
+            }
+        }
         usersByID.put(id, this);
         usersByUUID.put(bGetUniqueId(), this);
     }

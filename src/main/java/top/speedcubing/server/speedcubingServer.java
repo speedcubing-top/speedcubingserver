@@ -1,19 +1,7 @@
 package top.speedcubing.server;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.regex.Pattern;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +10,7 @@ import org.spigotmc.SpigotConfig;
 import top.speedcubing.common.CommonLib;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.io.SocketReader;
+import top.speedcubing.common.redis.RedisBus;
 import top.speedcubing.common.server.MinecraftProxy;
 import top.speedcubing.lib.api.mojang.ProfileSkin;
 import top.speedcubing.lib.eventbus.CubingEventManager;
@@ -37,12 +26,10 @@ import top.speedcubing.server.bukkitcmd.image;
 import top.speedcubing.server.bukkitcmd.nick.nick;
 import top.speedcubing.server.bukkitcmd.nick.unnick;
 import top.speedcubing.server.bukkitcmd.ranks;
+import top.speedcubing.server.bukkitcmd.staff.cps;
 import top.speedcubing.server.bukkitcmd.staff.cpsdisplay;
 import top.speedcubing.server.bukkitcmd.staff.freeze;
 import top.speedcubing.server.bukkitcmd.staff.history;
-import top.speedcubing.server.cubingcmd.staff.nicklogs;
-import top.speedcubing.server.cubingcmd.staff.testkb;
-import top.speedcubing.server.bukkitcmd.staff.cps;
 import top.speedcubing.server.bukkitcmd.status;
 import top.speedcubing.server.bukkitcmd.trolls.bangift;
 import top.speedcubing.server.bukkitcmd.trolls.deepfry;
@@ -54,6 +41,7 @@ import top.speedcubing.server.bukkitlistener.PreListen;
 import top.speedcubing.server.bukkitlistener.SingleListen;
 import top.speedcubing.server.bukkitlistener.pluginchannel.FMLHSListener;
 import top.speedcubing.server.configuration.Configuration;
+import top.speedcubing.server.cubingcmd.staff.nicklogs;
 import top.speedcubing.server.cubinglistener.CubingTick;
 import top.speedcubing.server.cubinglistener.PlayIn;
 import top.speedcubing.server.cubinglistener.PlayOut;
@@ -61,13 +49,21 @@ import top.speedcubing.server.cubinglistener.SocketRead;
 import top.speedcubing.server.lang.LanguageSystem;
 import top.speedcubing.server.login.BungeePacket;
 import top.speedcubing.server.player.User;
+import top.speedcubing.server.redis.RedisListener;
 import top.speedcubing.server.system.command.CubingCommandLoader;
 import top.speedcubing.server.utils.CPSMonitor;
 import top.speedcubing.server.utils.LogListener;
 import top.speedcubing.server.utils.WordDictionary;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+
+import java.io.DataInputStream;
+import java.io.File;
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.regex.Pattern;
 
 public class speedcubingServer extends JavaPlugin {
     public static final Pattern nameRegex = Pattern.compile("^\\w{3,16}$");
@@ -116,6 +112,8 @@ public class speedcubingServer extends JavaPlugin {
         Configuration.reload();
 
         new SocketReader(new HostAndPort("0.0.0.0", Bukkit.getPort() + 1000));
+
+        RedisListener.init();
 
         LanguageSystem.init();
 
@@ -194,6 +192,7 @@ public class speedcubingServer extends JavaPlugin {
         }
 
         CommonLib.shutdown();
+        RedisBus.shutdown();
         WordDictionary.dict.close();
     }
 

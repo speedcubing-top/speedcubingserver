@@ -32,7 +32,7 @@ public class SocketRead {
             }
             case "bungee" -> {
                 int i = e.getData().readInt();
-                speedcubingServer.bungeePacketStorage.put(i, new BungeePacket(e.getData().readUTF(), e.getData().readUTF(), e.getData().readUTF(), e.getData().readBoolean()));
+                speedcubingServer.bungeePacketStorage.put(i, new BungeePacket(e.getData().readUTF(), e.getData().readBoolean()));
             }
             case "demo" -> {
                 PacketPlayOutGameStateChange packet = new PacketPlayOutGameStateChange(5, 0);
@@ -53,9 +53,6 @@ public class SocketRead {
                     PlayerUtils.crashAll(User.getUser(id).player);
                     User.getUser(id).isCrashed = true;
                 }
-            }
-            case "velo" -> {
-                User.getUser(data.readInt()).velocities = data.readBoolean() ? new double[]{data.readDouble(), data.readDouble()} : null;
             }
             case "vanish" -> {
                 User user = User.getUser(data.readInt());
