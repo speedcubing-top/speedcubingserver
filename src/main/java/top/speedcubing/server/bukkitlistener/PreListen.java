@@ -3,16 +3,6 @@ package top.speedcubing.server.bukkitlistener;
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.PacketPlayOutBed;
 import org.bukkit.Bukkit;
@@ -40,13 +30,23 @@ import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.server.authenticator.AuthEventHandlers;
 import top.speedcubing.server.bukkitcmd.staff.cpsdisplay;
-import top.speedcubing.server.login.BungeePacket;
+import top.speedcubing.server.configuration.Configuration;
 import top.speedcubing.server.login.LoginContext;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.CommandParser;
-import top.speedcubing.server.configuration.Configuration;
 import top.speedcubing.server.utils.RankSystem;
+
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class PreListen implements Listener {
 
@@ -124,20 +124,10 @@ public class PreListen implements Listener {
             if (!Rank.isStaff(realRank) && Bukkit.hasWhitelist() && (row.getBoolean("serverwhitelist"))) {
                 e.setKickMessage("§cThis server is currently under maintenance.");
                 e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
-                speedcubingServer.bungeePacketStorage.remove(id);
                 return;
             }
 
-            // bungee-data-not-found
-            BungeePacket bungePacket = speedcubingServer.bungeePacketStorage.get(id);
-            if (bungePacket == null) {
-                e.setKickMessage("§cError occurred.");
-                e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
-                return;
-            }
-
-            speedcubingServer.bungeePacketStorage.remove(id);
-            ctxMap.put(player.getUniqueId(), new LoginContext(row, realRank, bungePacket));
+            ctxMap.put(player.getUniqueId(), new LoginContext(row, realRank));
         }
     }
 
