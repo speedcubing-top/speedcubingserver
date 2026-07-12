@@ -38,6 +38,7 @@ public class CubingTick {
 
         // user loop
         for (User user : User.getUsers()) {
+            /*
             if (user.listened)
                 user.writeToProxy(new ByteArrayBuffer().writeUTF("cps").writeInt(user.id).writeInt(user.leftCPS).writeInt(user.rightCPS).toByteArray());
                         /*

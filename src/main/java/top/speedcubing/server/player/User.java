@@ -83,7 +83,6 @@ public class User extends JoinedPlayer {
     public double[] velocities;
     public MinecraftProxy proxy;
     public boolean chatFilt;
-    public boolean listened;
     public PacketPlayOutScoreboardTeam joinPacket;
     public PacketPlayOutScoreboardTeam leavePacket;
     public Queue<Integer> leftClickQueue = new ArrayDeque<>(), rightClickQueue = new ArrayDeque<>();
@@ -99,10 +98,7 @@ public class User extends JoinedPlayer {
         super(player.getUniqueId(), ctx.getRow().getString("name"), ctx.getRow().getInt("id"), ctx.getRow().getString("ip"), ctx.getRealRank(), displayRank, displayName, ctx.getRow());
         this.player = player;
         this.permissions = permissions;
-        this.listened = ctx.getBungePacket().cps;
         this.chatFilt = ctx.getRow().getBoolean("chatfilt");
-        this.vanished = ctx.getBungePacket().vanished;
-        this.proxy = ctx.getBungePacket().proxy;
         String status = ctx.getRow().getString("status");
         this.status = status == null ? "null" : status;
         this.defaultSkin = new Skin(ctx.getRow().getString("profile_textures_value"), ctx.getRow().getString("profile_textures_signature"));
@@ -110,6 +106,8 @@ public class User extends JoinedPlayer {
 
         try (SQLConnection connection = Database.getCubing()) {
             SQLRow online = connection.select("*").from("onlineplayer").where("id=" + id).executeResult().get(0);
+            this.vanished = online.getBoolean("vanished");
+            this.proxy = MinecraftProxy.getProxy(online.getString("proxy"));
             if (online.getBoolean("velo_enabled")) {
                 this.velocities = new double[]{online.getDouble("velo_hor"), online.getDouble("velo_ver")};
             }
