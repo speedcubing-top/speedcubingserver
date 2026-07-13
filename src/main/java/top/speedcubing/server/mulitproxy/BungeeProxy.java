@@ -15,11 +15,6 @@ public class BungeeProxy {
     }
 
     public static void proxyCommand(String command) {
-        byte[] packet = new ByteArrayBuffer()
-                .writeUTF("proxycmd")
-                .writeUTF(command)
-                .toByteArray();
-
-        speedcubingServer.writeToInternal(packet);
+        speedcubingServer.publishToInternal("proxycmd", command);
     }
 }

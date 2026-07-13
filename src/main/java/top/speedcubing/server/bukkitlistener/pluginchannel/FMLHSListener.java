@@ -15,7 +15,7 @@ public class FMLHSListener implements PluginMessageListener {
     @Override
     public void onPluginMessageReceived(String s, Player player, byte[] bytes) {
         if (bytes.length == 2) {
-            BungeeProxy.proxyCommand("proxycommand ban " + player.getName() + " 0 Suspicious activities detected on your account.");
+            BungeeProxy.proxyCommand("ban " + player.getName() + " 0 Suspicious activities detected on your account.");
             return;
         }
 
@@ -39,7 +39,7 @@ public class FMLHSListener implements PluginMessageListener {
                 if (!punished) {
                     for (Pattern p : Configuration.blacklistedMod) {
                         if (p.matcher(a2).matches()) {
-                            BungeeProxy.proxyCommand("proxycommand ban " + player.getName() + " 0 Suspicious activities detected on your account.");
+                            BungeeProxy.proxyCommand("ban " + player.getName() + " 0 Suspicious activities detected on your account.");
                             punished = true;
                             break;
                         }

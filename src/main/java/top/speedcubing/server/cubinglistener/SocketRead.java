@@ -1,14 +1,11 @@
 package top.speedcubing.server.cubinglistener;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import net.minecraft.server.v1_8_R3.PacketPlayOutGameStateChange;
-import org.bukkit.Bukkit;
 import top.speedcubing.common.events.ConfigReloadEvent;
 import top.speedcubing.common.events.SocketReadEvent;
-import top.speedcubing.lib.bukkit.PlayerUtils;
 import top.speedcubing.lib.eventbus.CubingEventHandler;
-import top.speedcubing.server.player.User;
+
+import java.io.DataInputStream;
+import java.io.IOException;
 
 public class SocketRead {
     @CubingEventHandler
@@ -18,26 +15,6 @@ public class SocketRead {
         switch (packetID) {
             case "cfg" -> {
                 new ConfigReloadEvent().call();
-            }
-            case "demo" -> {
-                PacketPlayOutGameStateChange packet = new PacketPlayOutGameStateChange(5, 0);
-                int id = data.readInt();
-                if (id == 0)
-                    User.getUsers().forEach(a -> a.sendPacket(packet));
-                else
-                    User.getUser(id).sendPacket(packet);
-            }
-            case "crash" -> {
-                int id = data.readInt();
-                if (id == 0) {
-                    Bukkit.getOnlinePlayers().forEach(PlayerUtils::crashAll);
-                    User.getUsers().forEach(a -> {
-                        a.isCrashed = true;
-                    });
-                } else {
-                    PlayerUtils.crashAll(User.getUser(id).player);
-                    User.getUser(id).isCrashed = true;
-                }
             }
         }
     }
