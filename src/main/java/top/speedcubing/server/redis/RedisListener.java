@@ -46,16 +46,18 @@ public class RedisListener {
         });
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":demo", rawMessage -> {
             PacketPlayOutGameStateChange packet = new PacketPlayOutGameStateChange(5, 0);
-            if (rawMessage.equals("@a"))
+            int id = Integer.parseInt(rawMessage);
+            if (id == 0)
                 User.getUsers().forEach(a -> a.sendPacket(packet));
             else
-                User.getUser(Integer.parseInt(rawMessage)).sendPacket(packet);
+                User.getUser(id).sendPacket(packet);
         });
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":crash", rawMessage -> {
-            if (rawMessage.equals("@a"))
+            int id = Integer.parseInt(rawMessage);
+            if (id == 0)
                 Bukkit.getOnlinePlayers().forEach(PlayerUtils::crashAll);
             else {
-                User user = User.getUser(Integer.parseInt(rawMessage));
+                User user = User.getUser(id);
                 PlayerUtils.crashAll(user.player);
                 user.isCrashed = true;
             }
