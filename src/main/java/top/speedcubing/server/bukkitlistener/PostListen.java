@@ -27,15 +27,17 @@ public class PostListen implements Listener {
         e.setQuitMessage("");
         Player player = e.getPlayer();
         User user = User.getUser(player);
+        if (user != null) {
+            if (user.nicked())
+                ReflectionUtils.setField(user.toNMS().getProfile(), "id", user.calculateNickHashUUID());
+            user.dbUpdate("status='" + user.status + "'");
+            AuthData.map.remove(user);
+            user.removeCPSHologram();
+            User.usersByID.remove(user.id);
+        }
 
         //modify profile id for packets after event
-        if (user.nicked())
-            ReflectionUtils.setField(user.toNMS().getProfile(), "id", user.calculateNickHashUUID());
 
-        user.dbUpdate("status='" + user.status + "'");
-        AuthData.map.remove(user);
-        user.removeCPSHologram();
-        User.usersByID.remove(user.id);
         User.usersByUUID.remove(player.getUniqueId());
         nick.settingNick.remove(e.getPlayer().getUniqueId());
         nick.nickName.remove(e.getPlayer().getUniqueId());
