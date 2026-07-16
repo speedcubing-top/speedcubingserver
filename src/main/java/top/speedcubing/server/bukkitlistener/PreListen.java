@@ -221,25 +221,6 @@ public class PreListen implements Listener {
         }
         //auth
         AuthEventHandlers.onPlayerJoin(e);
-
-        //腦癱時間
-        if (Bukkit.getServerName().equalsIgnoreCase("lobby")) {
-            LocalTime start = LocalTime.of(0, 0);
-            LocalTime end = LocalTime.of(6, 0);
-            LocalTime now = LocalTime.parse(user.getCurrentTime());
-            if (now.equals(start) || now.isAfter(start) && now.isBefore(end)) {
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        String s = DateTimeFormatter.ofPattern("HH:mm").format(now);
-                        player.sendMessage("§cCurrent time is " + s + ". Please take a break.");
-                        for (User u : User.getUsers()) {
-                            howToWin(u.player);
-                        }
-                    }
-                }, 1000);
-            }
-        }
     }
 
     private void howToWin(Player player) {
