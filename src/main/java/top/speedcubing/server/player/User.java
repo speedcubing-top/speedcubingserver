@@ -44,6 +44,7 @@ import top.speedcubing.server.lang.LangItem;
 import top.speedcubing.server.login.LoginContext;
 import top.speedcubing.server.utils.RankSystem;
 
+import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -105,7 +106,12 @@ public class User extends JoinedPlayer {
         this.isCrashed = false;
 
         try (SQLConnection connection = Database.getCubing()) {
-            SQLRow online = connection.select("*").from("onlineplayer").where("id=" + id).executeResult().get(0);
+            SQLResult result = connection.select("*").from("onlineplayer").where("id=" + id).executeResult();
+            if (result.isEmpty()) {
+                player.kickPlayer("[System] error (2)");
+                return;
+            }
+            SQLRow online = result.get(0);
             this.vanished = online.getBoolean("vanished");
             this.proxy = MinecraftProxy.getProxy(online.getString("proxy"));
             if (online.getBoolean("velo_enabled")) {
@@ -220,8 +226,12 @@ public class User extends JoinedPlayer {
     }
 
     public String getCurrentTime() {
-        ZoneId zone = ZoneId.of(timeZone);
-        return java.time.LocalTime.now(zone).toString();
+        try {
+            ZoneId zone = ZoneId.of(timeZone);
+            return java.time.LocalTime.now(zone).toString();
+        }catch (DateTimeException e) {
+            return "";
+        }
     }
 
     //kb
