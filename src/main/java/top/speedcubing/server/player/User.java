@@ -105,19 +105,12 @@ public class User extends JoinedPlayer {
         this.defaultSkin = new Skin(ctx.getRow().getString("profile_textures_value"), ctx.getRow().getString("profile_textures_signature"));
         this.isCrashed = false;
 
-        try (SQLConnection connection = Database.getCubing()) {
-            SQLResult result = connection.select("*").from("onlineplayer").where("id=" + id).executeResult();
-            if (result.isEmpty()) {
-                player.kickPlayer("[System] error (2)");
-                return;
-            }
-            SQLRow online = result.get(0);
-            this.vanished = online.getBoolean("vanished");
-            this.proxy = MinecraftProxy.getProxy(online.getString("proxy"));
-            if (online.getBoolean("velo_enabled")) {
-                this.velocities = new double[]{online.getDouble("velo_hor"), online.getDouble("velo_ver")};
-            }
+        this.vanished = ctx.getOnlinePlayerRow().getBoolean("vanished");
+        this.proxy = MinecraftProxy.getProxy(ctx.getOnlinePlayerRow().getString("proxy"));
+        if (ctx.getOnlinePlayerRow().getBoolean("velo_enabled")) {
+            this.velocities = new double[]{ctx.getOnlinePlayerRow().getDouble("velo_hor"), ctx.getOnlinePlayerRow().getDouble("velo_ver")};
         }
+
         usersByID.put(id, this);
         usersByUUID.put(bGetUniqueId(), this);
     }
@@ -229,7 +222,7 @@ public class User extends JoinedPlayer {
         try {
             ZoneId zone = ZoneId.of(timeZone);
             return java.time.LocalTime.now(zone).toString();
-        }catch (DateTimeException e) {
+        } catch (DateTimeException e) {
             return "";
         }
     }
