@@ -18,7 +18,7 @@ public class LoginContext {
     }
 
     public SQLRow getOnlinePlayerRow() {
-        return row;
+        return onlinePlayerRow;
     }
 
     public String getRealRank() {
