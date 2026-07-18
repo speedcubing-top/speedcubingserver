@@ -27,6 +27,7 @@ import top.speedcubing.lib.bukkit.PlayerUtils;
 import top.speedcubing.lib.bukkit.packetwrapper.OutScoreboardTeam;
 import top.speedcubing.lib.utils.ReflectionUtils;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
+import top.speedcubing.lib.utils.SQL.SQLResult;
 import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.server.authenticator.AuthEventHandlers;
 import top.speedcubing.server.bukkitcmd.staff.cpsdisplay;
@@ -37,14 +38,10 @@ import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.CommandParser;
 import top.speedcubing.server.utils.RankSystem;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -120,6 +117,16 @@ public class PreListen implements Listener {
             int id = row.getInt("id");
             String realRank = Rank.getRank(row.getString("priority"), id);
 
+            SQLResult onlinePlayer = connection.prepare("SELECT * FROM onlineplayer WHERE id=?")
+                    .setInt(1, id)
+                    .executeResult();
+
+            if (onlinePlayer.isEmpty()) {
+                e.setKickMessage("[System] error (2)");
+                e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
+                return;
+            }
+
             // maintenance
             if (!Rank.isStaff(realRank) && Bukkit.hasWhitelist() && (row.getBoolean("serverwhitelist"))) {
                 e.setKickMessage("§cThis server is currently under maintenance.");
@@ -127,7 +134,7 @@ public class PreListen implements Listener {
                 return;
             }
 
-            ctxMap.put(player.getUniqueId(), new LoginContext(row, realRank));
+            ctxMap.put(player.getUniqueId(), new LoginContext(row, onlinePlayer.get(0), realRank));
         }
     }
 
