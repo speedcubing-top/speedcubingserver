@@ -14,11 +14,6 @@ import top.speedcubing.server.configuration.Configuration;
 public class FMLHSListener implements PluginMessageListener {
     @Override
     public void onPluginMessageReceived(String s, Player player, byte[] bytes) {
-        if (bytes.length == 2) {
-            BungeeProxy.proxyCommand("ban " + player.getName() + " 0 Suspicious activities detected on your account.");
-            return;
-        }
-
         boolean store = false, punished = false;
         String name = null, a2, string;
         Boolean bypass;
