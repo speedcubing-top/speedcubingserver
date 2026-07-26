@@ -16,21 +16,21 @@ public class RedisListener {
     public static void init() {
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":velocity", rawMessage -> {
             VelocityUpdateMessage message = new Gson().fromJson(rawMessage, VelocityUpdateMessage.class);
-            User user = User.getUser(message.playerId);
+            User user = User.getUser(message.playerId());
             if (user == null) {
                 return;
             }
 
-            user.velocities = message.enabled ? new double[]{message.horizontal, message.vertical} : null;
+            user.velocities = message.enabled() ? new double[]{message.horizontal(), message.vertical()} : null;
         });
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":vanish", rawMessage -> {
             VanishUpdateMessage message = new Gson().fromJson(rawMessage, VanishUpdateMessage.class);
-            User user = User.getUser(message.playerId);
+            User user = User.getUser(message.playerId());
             if (user == null) {
                 return;
             }
 
-            user.vanished = message.state;
+            user.vanished = message.state();
             if (user.vanished) {
                 Bukkit.getScheduler().runTask(speedcubingServer.getInstance(), () -> {
                     for (Player p : Bukkit.getOnlinePlayers())
