@@ -13,3 +13,4 @@ jobs:
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+      WEBHOOK_RUNNER_SECRET: ${{ secrets.WEBHOOK_RUNNER_SECRET }}

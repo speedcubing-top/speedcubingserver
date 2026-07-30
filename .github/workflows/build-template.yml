@@ -12,6 +12,8 @@ on:
         required: false
       NEXUS_PASSWORD:
         required: false
+      WEBHOOK_RUNNER_SECRET:
+        required: false
 
 jobs:
   build:
@@ -58,3 +60,9 @@ jobs:
       if: ${{ !inputs.build_only }}
       run: |
         mvn -B --no-transfer-progress -DskipTests deploy
+        
+    - name: Trigger Webhook Runner
+      if: ${{ !inputs.build_only }}
+      run: |
+        curl -X POST https://webhook.speedcubing.top/github/speedcubing-top/speedcubingserver/build \
+        -H "Authorization: Bearer ${{ secrets.WEBHOOK_RUNNER_SECRET }}"
