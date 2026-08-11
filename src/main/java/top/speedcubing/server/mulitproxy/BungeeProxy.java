@@ -1,20 +1,20 @@
 package top.speedcubing.server.mulitproxy;
 
-import top.speedcubing.lib.utils.bytes.ByteArrayBuffer;
+import top.speedcubing.common.redis.message.ConnectServerMessage;
+import top.speedcubing.common.server.MinecraftProxy;
 import top.speedcubing.server.player.User;
-import top.speedcubing.server.speedcubingServer;
 
 public class BungeeProxy {
     public static void switchServer(int id, String server) {
         User user = User.getUser(id);
         if (user != null) {
-            user.proxy.write(new ByteArrayBuffer().writeUTF("connectionreq").writeInt(id).writeUTF("").writeUTF(server).toByteArray());
+            user.proxy.redisPublish("send", new ConnectServerMessage(id, "", server));
             return;
         }
-        speedcubingServer.writeToInternal(new ByteArrayBuffer().writeUTF("connectionreq").writeInt(id).writeUTF("").writeUTF(server).toByteArray());
+        MinecraftProxy.getRandomProxy().redisPublish("send", new ConnectServerMessage(id, "", server));
     }
 
     public static void proxyCommand(String command) {
-        speedcubingServer.publishToInternal("proxycmd", command);
+        MinecraftProxy.getRandomProxy().redisPublish("proxycmd", command);
     }
 }

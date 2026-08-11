@@ -10,9 +10,8 @@ import top.speedcubing.lib.bukkit.inventory.BookBuilder;
 import top.speedcubing.lib.minecraft.text.ComponentText;
 import top.speedcubing.lib.minecraft.text.TextClickEvent;
 import top.speedcubing.lib.minecraft.text.TextHoverEvent;
-import top.speedcubing.lib.utils.bytes.ByteArrayBuffer;
+import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.player.User;
-import top.speedcubing.server.speedcubingServer;
 
 public class bangift implements CommandExecutor {
     @Override
@@ -50,12 +49,7 @@ public class bangift implements CommandExecutor {
     }
 
     public static void fakeBan(Player player) {
-        byte[] packet = new ByteArrayBuffer()
-                .writeUTF("proxycmd")
-                .writeUTF("kick " + player.getName() + " §4You are banned from this server.\n\n§fBanned Reason: §cBanned Gift\n\n§fExpires in: §e365 days\n\n§fBan ID: §eLOLOLOLO" +
-                        "\n\n§bspeedcubing.top/discord §cfor mor information.")
-                .toByteArray();
-
-        speedcubingServer.writeToInternal(packet);
+        BungeeProxy.proxyCommand("kick " + player.getName() + " §4You are banned from this server.\n\n§fBanned Reason: §cBanned Gift\n\n§fExpires in: §e365 days\n\n§fBan ID: §eLOLOLOLO" +
+                "\n\n§bspeedcubing.top/discord §cfor mor information.");
     }
 }

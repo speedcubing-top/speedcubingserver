@@ -233,14 +233,6 @@ public class speedcubingServer extends JavaPlugin {
         }
     }
 
-    public static CompletableFuture<DataInputStream> writeToInternal(byte[] b) {
-        return MinecraftProxy.getProxy("proxy1").write(b);
-    }
-
-    public static void publishToInternal(String channel, String message) {
-        MinecraftProxy.getProxy("proxy1").redisPublish(channel, message);
-    }
-
     public static void restart() {
         if (canRestart)
             RestartCommand.restart();
