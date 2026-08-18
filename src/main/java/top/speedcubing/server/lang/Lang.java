@@ -1,6 +1,5 @@
 package top.speedcubing.server.lang;
 
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -48,7 +47,7 @@ public class Lang {
     }
 
     public String getString(int lang) {
-        return getComponent(lang).toColorText();
+        return getComponent(lang).toText();
     }
 
     public ComponentText getComponent(int lang) {

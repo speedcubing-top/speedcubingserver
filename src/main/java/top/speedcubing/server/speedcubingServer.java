@@ -121,14 +121,6 @@ public class speedcubingServer extends JavaPlugin {
 
         new LogListener().reloadFilter();
 
-        try (SQLConnection connection = Database.getSystem()) {
-            connection.update("servers",
-                    "launchtime=" + SystemUtils.getCurrentSecond() +
-                            ",ram_max=" + SystemUtils.getXmx() / 1048576,
-                    "name='" + Bukkit.getServerName() + "'"
-            );
-        }
-
         if (!Configuration.removeLogs) {
             for (File f : new File("logs").listFiles()) {
                 if (!f.getName().equals("latest.log"))
@@ -177,14 +169,6 @@ public class speedcubingServer extends JavaPlugin {
         if (audiences != null) {
             audiences.close();
             audiences = null;
-        }
-
-        try (SQLConnection connection = Database.getSystem()) {
-            connection.update(
-                    "servers",
-                    "onlinecount=-1,ram_max=-1,ram_heap=-1,ram_used=-1,tps1=-1,tps2=-1,tps3=-1",
-                    "name='" + Bukkit.getServerName() + "'"
-            );
         }
 
         CommonLib.shutdown();

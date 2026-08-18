@@ -14,6 +14,7 @@ import top.speedcubing.common.database.Database;
 import top.speedcubing.common.server.MinecraftServer;
 import top.speedcubing.lib.discord.DiscordWebhook;
 import top.speedcubing.lib.minecraft.MinecraftConsole;
+import top.speedcubing.lib.minecraft.text.MinecraftTextUtils;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.SQL.SQLResult;
 import top.speedcubing.lib.utils.SQL.SQLRow;
@@ -67,7 +68,7 @@ public class Chat {
         }
 
         MinecraftConsole.printlnColor("§7[§aChatLog§7] [§b" + sender.getWorld().getName() + "§7] " + unfiltered.getString(0));
-        chatLogger(sender, unfiltered.getComponent(0).toPlainText());
+        chatLogger(sender, MinecraftTextUtils.removeColorCode(unfiltered.getComponent(0).toText()));
     }
 
     private static final Executor discordWebhookPool = Executors.newSingleThreadExecutor();
