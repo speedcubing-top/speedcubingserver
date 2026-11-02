@@ -50,7 +50,6 @@ import top.speedcubing.server.lang.LanguageSystem;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.redis.RedisListener;
 import top.speedcubing.server.system.command.CubingCommandLoader;
-import top.speedcubing.server.utils.CPSMonitor;
 import top.speedcubing.server.utils.LogListener;
 import top.speedcubing.server.utils.WordDictionary;
 
@@ -76,17 +75,12 @@ public class speedcubingServer extends JavaPlugin {
 
     private BukkitAudiences audiences; // <- added field
 
-    // CPS monitoring moved to CPSMonitor helper class
-
     @Override
     public void onEnable() {
         instance = this;
 
         // initialize Adventure audiences
         audiences = BukkitAudiences.create(this);
-
-        // start the CPSMonitor with the plugin and audiences
-        CPSMonitor.start(this, audiences);
 
         if (!SpigotConfig.bungee) {
             speedcubingServer.getInstance().getLogger().warning("bungeecord shouldn't be false, shutting down server.");
@@ -162,9 +156,6 @@ public class speedcubingServer extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // stop CPS monitoring
-        CPSMonitor.stop();
-
         // close audiences if created
         if (audiences != null) {
             audiences.close();
