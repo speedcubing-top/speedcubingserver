@@ -14,11 +14,11 @@ public class proxycommand extends CubingCommand {
         if (args.length == 0)
             commandSender.sendMessage("/proxycommand <command...>");
         else {
-            StringBuilder comamndStrings = new StringBuilder();
+            StringBuilder commandStrings = new StringBuilder();
             for (String string : args) {
-                comamndStrings.append(" ").append(string);
+                commandStrings.append(" ").append(string);
             }
-            BungeeProxy.proxyCommand(comamndStrings.substring(1));
+            BungeeProxy.proxyCommand(commandStrings.substring(1));
         }
     }
 }

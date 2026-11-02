@@ -50,6 +50,6 @@ public class bangift implements CommandExecutor {
 
     public static void fakeBan(Player player) {
         BungeeProxy.proxyCommand("kick " + player.getName() + " §4You are banned from this server.\n\n§fBanned Reason: §cBanned Gift\n\n§fExpires in: §e365 days\n\n§fBan ID: §eLOLOLOLO" +
-                "\n\n§bspeedcubing.top/discord §cfor mor information.");
+                "\n\n§bspeedcubing.top/discord §cfor more information.");
     }
 }

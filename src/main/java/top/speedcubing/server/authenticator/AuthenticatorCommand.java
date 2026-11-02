@@ -16,7 +16,7 @@ import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.player.User;
 
 public class AuthenticatorCommand implements CommandExecutor {
-    private final Map<UUID, Integer> verifedCount = new HashMap<>();
+    private final Map<UUID, Integer> verifiedCount = new HashMap<>();
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
@@ -53,16 +53,16 @@ public class AuthenticatorCommand implements CommandExecutor {
                             player.sendMessage("§aYou have successfully authenticated");
                         } else {
                             player.sendMessage("§cThe key you entered is not valid. Please try again.");
-                            if (verifedCount.containsKey(player.getUniqueId())) {
-                                Integer score = verifedCount.get(player.getUniqueId());
+                            if (verifiedCount.containsKey(player.getUniqueId())) {
+                                Integer score = verifiedCount.get(player.getUniqueId());
                                 if (score != 10) {
-                                    verifedCount.put(player.getUniqueId(), score + 1);
+                                    verifiedCount.put(player.getUniqueId(), score + 1);
                                 } else {
-                                    verifedCount.remove(player.getUniqueId());
+                                    verifiedCount.remove(player.getUniqueId());
                                     BungeeProxy.proxyCommand("ban " + player.getName() + " 0 Suspicious activities detected on your account , contact support for assistance. -hideid");
                                 }
                             } else {
-                                verifedCount.put(player.getUniqueId(), 1);
+                                verifiedCount.put(player.getUniqueId(), 1);
                             }
                         }
                         } else {

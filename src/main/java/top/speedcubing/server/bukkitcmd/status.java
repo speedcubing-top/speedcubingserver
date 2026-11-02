@@ -85,7 +85,7 @@ public class status implements CommandExecutor {
 
     }
 
-    private boolean hasPermission(Player player, String staus) {
-        return User.getUser(player).hasPermission("status." + staus) || User.getUser(player).hasPermission("status.*");
+    private boolean hasPermission(Player player, String status) {
+        return User.getUser(player).hasPermission("status." + status) || User.getUser(player).hasPermission("status.*");
     }
 }
