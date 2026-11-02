@@ -7,6 +7,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
+import top.speedcubing.lib.utils.SQL.SQLResult;
+import top.speedcubing.lib.utils.SQL.SQLRow;
+import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.configuration.Configuration;
@@ -68,6 +71,18 @@ public class FMLHSListener implements PluginMessageListener {
         System.out.println(Arrays.toString(bytes));
 
         try (SQLConnection connection = Database.getCubing()) {
+            // keep the mod list recorded for players who are already banned (evidence); same rule as the proxy's
+            // Punishment.getBanInfo: latest banlist row, not pardoned, permanent or not yet expired
+            SQLResult ban = connection.select("at,days,pardon").from("banlist").where("uuid='" + User.getUser(player).uuid + "'").orderBy("at DESC").limit(0, 1).executeResult();
+            if (!ban.isEmpty()) {
+                SQLRow r = ban.get(0);
+                int days = r.getInt(1);
+                boolean active = r.getString(2).isEmpty() && (days == 0 || days * 86400L + r.getInt(0) > SystemUtils.getCurrentSecond());
+                if (active) {
+                    return;
+                }
+            }
+
             connection.prepare("UPDATE `playersdata` SET forgemod=? WHERE id=?")
                     .setString(1, mods)
                     .setInt(2, id)
