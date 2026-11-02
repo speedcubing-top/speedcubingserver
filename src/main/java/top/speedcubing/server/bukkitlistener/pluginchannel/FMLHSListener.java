@@ -14,6 +14,12 @@ import top.speedcubing.server.configuration.Configuration;
 public class FMLHSListener implements PluginMessageListener {
     @Override
     public void onPluginMessageReceived(String s, Player player, byte[] bytes) {
+        // the client answers the proxy's fake handshake with ClientHello (1), ModList (2) and HandshakeAck (-1);
+        // only ModList carries mods, the others would overwrite the stored list
+        if (bytes.length == 0 || bytes[0] != 2) {
+            return;
+        }
+
         boolean store = false, punished = false;
         String name = null, a2, string;
         Boolean bypass;
