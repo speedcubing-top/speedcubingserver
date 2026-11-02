@@ -109,6 +109,8 @@ public class PreListen implements Listener {
     public void PlayerLoginEvent(PlayerLoginEvent e) {
         Player player = e.getPlayer();
 
+        // if loading the player fails, refuse the login: letting them in without a LoginContext leaves a player
+        // with no User online, which breaks code that iterates all players (e.g. lobby join) until they leave
         try (SQLConnection connection = Database.getCubing()) {
             SQLRow row = connection.prepare("SELECT * FROM playersdata WHERE uuid=?")
                     .setString(1, player.getUniqueId().toString())
@@ -135,6 +137,10 @@ public class PreListen implements Listener {
             }
 
             ctxMap.put(player.getUniqueId(), new LoginContext(row, onlinePlayer.get(0), realRank));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            e.setKickMessage("[System] error (5), please rejoin");
+            e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
         }
     }
 
@@ -147,6 +153,10 @@ public class PreListen implements Listener {
 
         LoginContext ctx = ctxMap.get(player.getUniqueId());
         ctxMap.remove(player.getUniqueId());
+        if (ctx == null) {
+            player.kickPlayer("[System] error (6), please rejoin");
+            return;
+        }
 
         //Perms
         Set<String> perms = Sets.newHashSet(ctx.getRow().getString("perms").split("\\|"));
