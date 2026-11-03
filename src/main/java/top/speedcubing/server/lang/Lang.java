@@ -60,7 +60,7 @@ public class Lang {
         return ComponentText.unSerialize(result);
     }
 
-    // missing keys (e.g. plugins deployed before /storage/lang was updated) fall back to English, then the raw key
+    // missing keys (e.g. a language file without the newest keys) fall back to English, then the raw key
     private static String lookup(int lang, String key) {
         JsonObject[] files = LanguageSystem.lang;
         if (files[lang] != null && files[lang].has(key))

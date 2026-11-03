@@ -4,21 +4,25 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 
 public class LanguageSystem {
-    public static int langCount = 4;
+    // language ids are stored per player (playersdata.lang), so the order must never change
+    public static final String[] LOCALES = {"de", "en", "zh-TW", "zh-CN"};
+    public static int langCount = LOCALES.length;
 
     public static JsonObject[] lang = new JsonObject[langCount];
 
+    /** Loads lang/<locale>.json (server-language repo, baked into the image) from the server directory. */
     public static void init() {
-        try {
-            File dir = new File("/storage/lang");
-            for (File f : dir.listFiles()) {
-                int id = Integer.parseInt(f.getName().split("_")[0]);
-                lang[id] = JsonParser.parseReader(new FileReader(f)).getAsJsonObject();
+        File dir = new File("lang");
+        for (int id = 0; id < langCount; id++) {
+            File file = new File(dir, LOCALES[id] + ".json");
+            try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
+                lang[id] = JsonParser.parseReader(reader).getAsJsonObject();
+            } catch (Exception e) {
+                System.out.println("[LanguageSystem] could not load " + file.getAbsolutePath() + ": " + e);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
