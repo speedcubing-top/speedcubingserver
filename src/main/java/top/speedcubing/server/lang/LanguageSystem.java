@@ -13,9 +13,9 @@ public class LanguageSystem {
 
     public static JsonObject[] lang = new JsonObject[langCount];
 
-    /** Loads lang/<locale>.json (server-language repo, baked into the image) from the server directory. */
+    /** Loads /storage/lang/<locale>.json (files from the server-language repo, copied to the host's storage mount). */
     public static void init() {
-        File dir = new File("lang");
+        File dir = new File("/storage/lang");
         for (int id = 0; id < langCount; id++) {
             File file = new File(dir, LOCALES[id] + ".json");
             try (FileReader reader = new FileReader(file, StandardCharsets.UTF_8)) {
