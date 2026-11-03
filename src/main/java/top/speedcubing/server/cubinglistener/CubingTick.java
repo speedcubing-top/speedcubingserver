@@ -2,6 +2,7 @@ package top.speedcubing.server.cubinglistener;
 
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import top.speedcubing.common.events.ChampsChangedEvent;
 import top.speedcubing.common.events.ConfigReloadEvent;
 import top.speedcubing.common.events.CubingTickEvent;
 import top.speedcubing.lib.bukkit.PlayerUtils;
@@ -64,6 +65,15 @@ public class CubingTick {
         //config reload
         if (e.getTick() % 3600 == 0) {
             new ConfigReloadEvent().call();
+        }
+    }
+
+    @CubingEventHandler
+    public void champsChangedEvent(ChampsChangedEvent e) {
+        for (int id : e.getChanged()) {
+            User user = User.getUser(id);
+            if (user != null)
+                user.recalculateRank();
         }
     }
 

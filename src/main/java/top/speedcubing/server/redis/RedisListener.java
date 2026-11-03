@@ -4,7 +4,10 @@ import com.google.gson.Gson;
 import net.minecraft.server.v1_8_R3.PacketPlayOutGameStateChange;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import top.speedcubing.common.rank.PermissionSet;
+import top.speedcubing.common.rank.RankUpdate;
 import top.speedcubing.common.redis.RedisBus;
+import top.speedcubing.common.redis.message.RankUpdateMessage;
 import top.speedcubing.common.redis.message.VanishUpdateMessage;
 import top.speedcubing.common.redis.message.VelocityUpdateMessage;
 import top.speedcubing.lib.bukkit.PlayerUtils;
@@ -14,6 +17,18 @@ import top.speedcubing.server.speedcubingServer;
 public class RedisListener {
 
     public static void init() {
+        RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":" + RankUpdate.CHANNEL, rawMessage -> {
+            RankUpdateMessage message = new Gson().fromJson(rawMessage, RankUpdateMessage.class);
+            if (message.reloadGroups())
+                PermissionSet.reload();
+            if (message.playerId() == 0) {
+                User.getUsers().forEach(User::recalculateRank);
+            } else {
+                User user = User.getUser(message.playerId());
+                if (user != null)
+                    user.recalculateRank();
+            }
+        });
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":velocity", rawMessage -> {
             VelocityUpdateMessage message = new Gson().fromJson(rawMessage, VelocityUpdateMessage.class);
             User user = User.getUser(message.playerId());

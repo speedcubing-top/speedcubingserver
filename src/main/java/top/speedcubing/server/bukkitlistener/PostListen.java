@@ -33,6 +33,7 @@ public class PostListen implements Listener {
             user.dbUpdate("status='" + user.status + "'");
             AuthData.map.remove(user);
             user.removeCPSHologram();
+            user.cancelRankExpiry();
             User.usersByID.remove(user.id);
         }
 

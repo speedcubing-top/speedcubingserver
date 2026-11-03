@@ -7,6 +7,8 @@ import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityVelocity;
 import net.minecraft.server.v1_8_R3.PacketPlayOutScoreboardTeam;
 import net.minecraft.server.v1_8_R3.PlayerConnection;
+import com.google.common.collect.Sets;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -23,6 +25,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.Vector;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.player.JoinedPlayer;
+import top.speedcubing.common.rank.PermissionSet;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.common.rank.RankFormat;
 import top.speedcubing.common.server.MinecraftProxy;
@@ -37,11 +40,13 @@ import top.speedcubing.lib.utils.SQL.SQLResult;
 import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.lib.utils.UUIDUtils;
 import top.speedcubing.lib.utils.bytes.ByteArrayBuffer;
+import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.lib.utils.bytes.NumberConversion;
 import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.lang.LangInv;
 import top.speedcubing.server.lang.LangItem;
 import top.speedcubing.server.login.LoginContext;
+import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.RankSystem;
 
 import java.time.DateTimeException;
@@ -54,6 +59,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class User extends JoinedPlayer {
 
@@ -347,6 +354,77 @@ public class User extends JoinedPlayer {
         String extracted = Rank.getCode(displayRank) + RankSystem.playerNameEncode(bGetName());
         this.leavePacket = new OutScoreboardTeam().a(extracted).h(1).packet;
         this.joinPacket = new OutScoreboardTeam().a(extracted).c(getFormat(false).getPrefix()).d(getGuildTag(nicked())).g(Collections.singletonList(bGetName())).h(0).packet;
+    }
+
+    // real-name team shown only to a nicked player themself, so they still see their real rank
+    public PacketPlayOutScoreboardTeam realNameTeam(String rank, boolean remove) {
+        String team = Rank.getCode(rank) + RankSystem.playerNameEncode(realName);
+        if (remove)
+            return new OutScoreboardTeam().a(team).h(1).packet;
+        return new OutScoreboardTeam().a(team).c(Rank.rankByName.get(rank).getFormat().getPrefix()).d(getGuildTag(true)).g(Collections.singletonList(realName)).h(0).packet;
+    }
+
+    // ---- live rank updates ----
+    private ScheduledFuture<?> rankExpiry; // main thread only
+
+    /**
+     * Re-reads priority and perms from the database and applies any change: rank, permissions, OP, nametags.
+     * Callable from any thread; the DB read runs on scheduledPool, the apply on the main thread.
+     */
+    public void recalculateRank() {
+        speedcubingServer.scheduledPool.execute(() -> {
+            try {
+                SQLRow r = dbSelect("priority,perms");
+                Rank.Resolved resolved = Rank.resolve(r.getString("priority"), id);
+                Set<String> perms = Sets.newHashSet(r.getString("perms").split("\\|"));
+                Bukkit.getScheduler().runTask(speedcubingServer.getInstance(), () -> applyRank(resolved, perms));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
+    private void applyRank(Rank.Resolved resolved, Set<String> perms) {
+        if (!player.isOnline() || getUser(id) != this || !Rank.rankByName.containsKey(resolved.rank()))
+            return;
+        scheduleRankExpiry(resolved.expiresAt());
+
+        String oldRealRank = realRank;
+        String newRank = resolved.rank();
+        perms.addAll(Rank.rankByName.get(newRank).getPerms());
+        PermissionSet.findGroups(perms);
+        permissions = perms;
+        player.setOp(hasPermission("perm.op"));
+
+        if (newRank.equals(oldRealRank))
+            return;
+        realRank = newRank;
+        isStaff = Rank.isStaff(newRank);
+        // same rule as PreListen: lobby always shows the real rank, games show the nick rank while nicked
+        if (Bukkit.getServerName().equalsIgnoreCase("lobby") || !nickState)
+            displayRank = newRank;
+
+        // nametag/tab: the team name encodes the rank, so remove the old team everywhere before adding the new one
+        PacketPlayOutScoreboardTeam oldLeave = leavePacket;
+        createTeamPacket();
+        for (User u : getUsers())
+            u.sendPacket(oldLeave, joinPacket);
+        if (nicked())
+            sendPacket(realNameTeam(oldRealRank, true), realNameTeam(realRank, false));
+    }
+
+    /** Schedules a recalculation for when the current period rank ends (expiresAt unix seconds, 0 = none). Main thread. */
+    public void scheduleRankExpiry(long expiresAt) {
+        cancelRankExpiry();
+        if (expiresAt > 0)
+            rankExpiry = speedcubingServer.scheduledPool.schedule(this::recalculateRank, Math.max(0, expiresAt - SystemUtils.getCurrentSecond()) + 1, TimeUnit.SECONDS);
+    }
+
+    public void cancelRankExpiry() {
+        if (rankExpiry != null) {
+            rankExpiry.cancel(false);
+            rankExpiry = null;
+        }
     }
 
     public void removeCPSHologram() {

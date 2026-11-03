@@ -117,7 +117,8 @@ public class PreListen implements Listener {
                     .executeResult().get(0);
 
             int id = row.getInt("id");
-            String realRank = Rank.getRank(row.getString("priority"), id);
+            Rank.Resolved rank = Rank.resolve(row.getString("priority"), id);
+            String realRank = rank.rank();
 
             SQLResult onlinePlayer = connection.prepare("SELECT * FROM onlineplayer WHERE id=?")
                     .setInt(1, id)
@@ -136,7 +137,7 @@ public class PreListen implements Listener {
                 return;
             }
 
-            ctxMap.put(player.getUniqueId(), new LoginContext(row, onlinePlayer.get(0), realRank));
+            ctxMap.put(player.getUniqueId(), new LoginContext(row, onlinePlayer.get(0), rank));
         } catch (Exception ex) {
             ex.printStackTrace();
             e.setKickMessage("[System] error (5), please rejoin");
@@ -216,7 +217,10 @@ public class PreListen implements Listener {
 
         //nick
         if (user.nicked())
-            user.sendPacket(new OutScoreboardTeam().a(Rank.getCode(user.realRank) + RankSystem.playerNameEncode(user.realName)).c(user.getFormat(true).getPrefix()).d(user.getGuildTag(true)).g(Collections.singletonList(user.realName)).h(0).packet);
+            user.sendPacket(user.realNameTeam(user.realRank, false));
+
+        // recalculate when a period rank ends
+        user.scheduleRankExpiry(ctx.getRankExpiresAt());
 
         //vanish
         for (User u : User.getUsers()) {
