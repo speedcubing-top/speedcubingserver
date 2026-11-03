@@ -12,9 +12,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.server.MinecraftServer;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.lib.discord.DiscordWebhook;
 import top.speedcubing.lib.minecraft.MinecraftConsole;
 import top.speedcubing.lib.minecraft.text.MinecraftTextUtils;
+import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.SQL.SQLResult;
 import top.speedcubing.lib.utils.SQL.SQLRow;
@@ -67,7 +69,7 @@ public class Chat {
             }
         }
 
-        MinecraftConsole.printlnColor("§7[§aChatLog§7] [§b" + sender.getWorld().getName() + "§7] " + unfiltered.getString(0));
+        MinecraftConsole.printlnColor(Prefix.CHAT_LOG + "§8[§b" + sender.getWorld().getName() + "§8] §r" + unfiltered.getString(0));
         chatLogger(sender, MinecraftTextUtils.removeColorCode(unfiltered.getComponent(0).toText()));
     }
 

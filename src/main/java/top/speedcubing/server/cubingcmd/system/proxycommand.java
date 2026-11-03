@@ -1,6 +1,7 @@
 package top.speedcubing.server.cubingcmd.system;
 
 import org.bukkit.command.CommandSender;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.system.command.CubingCommand;
 
@@ -12,7 +13,7 @@ public class proxycommand extends CubingCommand {
     @Override
     public void execute(CommandSender commandSender, String s, String[] args) {
         if (args.length == 0)
-            commandSender.sendMessage("/proxycommand <command...>");
+            commandSender.sendMessage(Msg.SYSTEM + Msg.usage("/proxycommand <command...>"));
         else {
             StringBuilder commandStrings = new StringBuilder();
             for (String string : args) {

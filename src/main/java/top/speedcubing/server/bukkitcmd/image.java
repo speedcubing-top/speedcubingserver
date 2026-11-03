@@ -13,6 +13,8 @@ import org.bukkit.map.MapView;
 import org.bukkit.scheduler.BukkitRunnable;
 import top.speedcubing.server.authenticator.ImageRenderer;
 import top.speedcubing.server.speedcubingServer;
+import top.speedcubing.server.utils.Prefix;
+import top.speedcubing.common.text.Msg;
 
 public class image implements CommandExecutor {
     @Override
@@ -21,14 +23,14 @@ public class image implements CommandExecutor {
         Player target;
         if (commandSender instanceof Player) {
             if (strings.length != 1) {
-                commandSender.sendMessage("§cUsage: /image <url>");
+                commandSender.sendMessage(Prefix.IMAGE + Msg.usage("/image <url>"));
                 return true;
             }
             target = (Player) commandSender;
             url = strings[0];
         } else {
             if (strings.length != 2) {
-                commandSender.sendMessage("§cUsage: /image <player> <url>");
+                commandSender.sendMessage(Prefix.IMAGE + Msg.usage("/image <player> <url>"));
                 return true;
             }
             target = Bukkit.getPlayerExact(strings[0]);
@@ -40,7 +42,7 @@ public class image implements CommandExecutor {
 
     private void render(CommandSender sender, Player player, String url) {
         if (player == null) {
-            sender.sendMessage("§cPlayer not found!");
+            sender.sendMessage(Prefix.IMAGE + Msg.PLAYER_NOT_FOUND);
             return;
         }
         new BukkitRunnable() {
@@ -57,7 +59,7 @@ public class image implements CommandExecutor {
                     player.getInventory().addItem(mapItem);
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    sender.sendMessage("§cAn error occurred! Is the URL correct?");
+                    sender.sendMessage(Prefix.IMAGE + Msg.ERROR + "Could not load the image. Is the URL correct?");
                 }
             }
         }.runTaskAsynchronously(speedcubingServer.instance);

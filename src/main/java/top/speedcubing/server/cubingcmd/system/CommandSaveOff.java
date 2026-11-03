@@ -6,6 +6,7 @@ import net.minecraft.server.v1_8_R3.MinecraftServer;
 import net.minecraft.server.v1_8_R3.WorldServer;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.server.system.command.CubingCommand;
 
 public class CommandSaveOff extends CubingCommand {
@@ -27,6 +28,6 @@ public class CommandSaveOff extends CubingCommand {
                 }
             }
         }
-        commandSender.sendMessage("OK");
+        commandSender.sendMessage(Msg.SYSTEM + Msg.SUCCESS + "OK, world saving disabled.");
     }
 }

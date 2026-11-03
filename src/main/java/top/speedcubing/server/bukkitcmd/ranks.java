@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.lib.bukkit.inventory.InventoryBuilder;
 import top.speedcubing.lib.bukkit.inventory.ItemBuilder;
+import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.player.User;
 
 public class ranks implements CommandExecutor {
@@ -20,268 +21,269 @@ public class ranks implements CommandExecutor {
     }
 
     private void open(Player player) {
-        InventoryBuilder inv = new InventoryBuilder(54, "§6Ranks");
+        int lang = User.getUser(player).lang;
+        InventoryBuilder inv = new InventoryBuilder(54, l(lang, "title"));
         ItemStack grayGlass = new ItemBuilder(Material.STAINED_GLASS_PANE).name(" ").durability(7).build();
         int rankWeight = Rank.rankByName.get(User.getUser(player).realRank).getWeight();
         ItemStack champ = new ItemBuilder(Material.WATCH).name("§3[Champ]").
                 lore(
-                        "§7- Chat Prefix: §3[Champ]",
-                        "§7- §3KnockBackFFA §7Champ §aKill Effects.",
-                        "§7- §3KnockBackFFA §7Champ §aProjectile Effects.",
-                        "§7- /fly in §3lobby",
-                        "§7Preview: " + getFormatName(player, "champ"),
-                        "§7Coming Soon...",
+                        l(lang, "chat_prefix", "§3[Champ]"),
+                        l(lang, "kbffa_champ_kill_effects"),
+                        l(lang, "kbffa_champ_projectile_effects"),
+                        l(lang, "fly_lobby"),
+                        l(lang, "preview", getFormatName(player, "champ")),
+                        l(lang, "coming_soon"),
                         "",
-                        "§7Require: Lifetime/Daily §6Top 1 §7in §3KnockBackFFA"
+                        l(lang, "require_champ")
                 )
                 .build();
         ItemBuilder vip = new ItemBuilder(Material.IRON_BLOCK).name("§d[VIP]");
         if (rankWeight < Rank.rankByName.get("vip").getWeight()) {
             vip.lore(
-                    "§7- Chat Prefix: §d[VIP]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7Preview: " + getFormatName(player, "vip"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§d[VIP]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "preview", getFormatName(player, "vip")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §65$",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price", "5$"),
+                    l(lang, "buy")
             );
         } else {
             vip.lore(
-                    "§7- Chat Prefix: §d[VIP]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7Preview: " + getFormatName(player, "vip"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§d[VIP]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "preview", getFormatName(player, "vip")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §65$",
-                    "§cPURCHASED!",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price", "5$"),
+                    l(lang, "purchased"),
+                    l(lang, "buy")
             );
         }
 
         ItemBuilder vipPlus = new ItemBuilder(Material.IRON_BLOCK).name("§d[VIP+]").glow();
         if (rankWeight < Rank.rankByName.get("vipplus").getWeight() && rankWeight != Rank.rankByName.get("vip").getWeight()) {
             vipPlus.lore(
-                    "§7- Chat Prefix: §d[VIP+]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7Preview: " + getFormatName(player, "vipplus"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§d[VIP+]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "preview", getFormatName(player, "vipplus")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §610$",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price", "10$"),
+                    l(lang, "buy")
             );
         } else if (rankWeight == Rank.rankByName.get("vip").getWeight()) {
             vipPlus.lore(
-                    "§7- Chat Prefix: §d[VIP+]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7Preview: " + getFormatName(player, "vipplus"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§d[VIP+]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "preview", getFormatName(player, "vipplus")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §c§m10$§r §a5$",
-                    "§7Upgrade Price: $5 (Others: $10)",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price_discount", "10$", "5$"),
+                    l(lang, "upgrade_price", "$5", "$10"),
+                    l(lang, "buy")
             );
         } else if (rankWeight >= Rank.rankByName.get("vipplus").getWeight()) {
             vipPlus.lore(
-                    "§7- Chat Prefix: §d[VIP+]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7Preview: " + getFormatName(player, "vipplus"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§d[VIP+]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "preview", getFormatName(player, "vipplus")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §610$",
-                    "§cPURCHASED!",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price", "10$"),
+                    l(lang, "purchased"),
+                    l(lang, "buy")
             );
         }
         ItemBuilder premium = new ItemBuilder(Material.GOLD_BLOCK).name("§6[Premium]");
         if (rankWeight < Rank.rankByName.get("premium").getWeight() && rankWeight != Rank.rankByName.get("vipplus").getWeight() && rankWeight != Rank.rankByName.get("vip").getWeight()) {
             premium.lore(
-                    "§7- Chat Prefix: §6[Premium]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- §3KnockBackFFA §aWeapon Selector.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7- /skin <name> - §aChange Your Skin",
-                    "§7Preview: " + getFormatName(player, "premium"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§6[Premium]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "kbffa_weapon_selector"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "skin"),
+                    l(lang, "preview", getFormatName(player, "premium")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §615$",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price", "15$"),
+                    l(lang, "buy")
             );
         } else if (rankWeight == Rank.rankByName.get("vip").getWeight()) {
             premium.lore(
-                    "§7- Chat Prefix: §6[Premium]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- §3KnockBackFFA §aWeapon Selector.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7- /skin <name> - §aChange Your Skin",
-                    "§7Preview: " + getFormatName(player, "premium"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§6[Premium]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "kbffa_weapon_selector"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "skin"),
+                    l(lang, "preview", getFormatName(player, "premium")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §c§m15$§r §a10$",
-                    "§7Upgrade Price: $10 (Others: $15)",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price_discount", "15$", "10$"),
+                    l(lang, "upgrade_price", "$10", "$15"),
+                    l(lang, "buy")
             );
         } else if (rankWeight == Rank.rankByName.get("vipplus").getWeight()) {
             premium.lore(
-                    "§7- Chat Prefix: §6[Premium]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- §3KnockBackFFA §aWeapon Selector.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7- /skin <name> - §aChange Your Skin",
-                    "§7Preview: " + getFormatName(player, "premium"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§6[Premium]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "kbffa_weapon_selector"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "skin"),
+                    l(lang, "preview", getFormatName(player, "premium")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §c§m15$§r §a5$",
-                    "§7Upgrade Price: $5 (Others: $15)",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price_discount", "15$", "5$"),
+                    l(lang, "upgrade_price", "$5", "$15"),
+                    l(lang, "buy")
             );
         } else if (rankWeight >= Rank.rankByName.get("premium").getWeight()) {
             premium.lore(
-                    "§7- Chat Prefix: §6[Premium]",
-                    "§7- §3KnockBackFFA §7All §aKill Effects.",
-                    "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                    "§7- §3KnockBackFFA §aCustom Armor Color.",
-                    "§7- §3KnockBackFFA §aWeapon Selector.",
-                    "§7- /fly in §3lobby",
-                    "§7- /reset in §3MLGRush",
-                    "§7- /skin <name> - §aChange Your Skin",
-                    "§7Preview: " + getFormatName(player, "premium"),
-                    "§7Coming Soon...",
+                    l(lang, "chat_prefix", "§6[Premium]"),
+                    l(lang, "kbffa_all_kill_effects"),
+                    l(lang, "kbffa_all_projectile_effects"),
+                    l(lang, "kbffa_armor_color"),
+                    l(lang, "kbffa_weapon_selector"),
+                    l(lang, "fly_lobby"),
+                    l(lang, "reset_mlgrush"),
+                    l(lang, "skin"),
+                    l(lang, "preview", getFormatName(player, "premium")),
+                    l(lang, "coming_soon"),
                     "",
-                    "§7Price: §615$",
-                    "§cPURCHASED!",
-                    "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                    l(lang, "price", "15$"),
+                    l(lang, "purchased"),
+                    l(lang, "buy")
             );
         }
         ItemStack premiumPlus = new ItemBuilder(Material.GOLD_BLOCK).name("§6[Premium+]").glow().
                 lore(
-                        "§7- Chat Prefix: §6[Premium+]",
-                        "§7- §3KnockBackFFA §7All §aKill Effects.",
-                        "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                        "§7- §3KnockBackFFA §aCustom Armor Color.",
-                        "§7- §3KnockBackFFA §aWeapon Selector.",
-                        "§7- /fly in §3lobby",
-                        "§7- /reset in §3MLGRush",
-                        "§7- /skin <name> - §aChange Your Skin",
-                        "§7- /nick - §aHide Your Real Name In Game",
-                        "§7Preview: " + getFormatName(player, "premiumplus"),
-                        "§7Coming Soon...",
+                        l(lang, "chat_prefix", "§6[Premium+]"),
+                        l(lang, "kbffa_all_kill_effects"),
+                        l(lang, "kbffa_all_projectile_effects"),
+                        l(lang, "kbffa_armor_color"),
+                        l(lang, "kbffa_weapon_selector"),
+                        l(lang, "fly_lobby"),
+                        l(lang, "reset_mlgrush"),
+                        l(lang, "skin"),
+                        l(lang, "nick"),
+                        l(lang, "preview", getFormatName(player, "premiumplus")),
+                        l(lang, "coming_soon"),
                         "",
-                        "§7Price: §63$/month",
-                        "§7Note: You need have §6[Premium] §7to buy this rank.",
-                        "§7Buy: §aspeedcubing.top/discord §7Open a ticket."
+                        l(lang, "price_monthly", "3$"),
+                        l(lang, "note_premium_required"),
+                        l(lang, "buy")
                 )
                 .build();
         ItemStack yt = new ItemBuilder(Material.WOOL).durability(10).name("§5[YT]").glow().
                 lore(
-                        "§7- Chat Prefix: §5[YT]",
-                        "§7- §3KnockBackFFA §7All §aKill Effects.",
-                        "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                        "§7- §3KnockBackFFA §aCustom Armor Color.",
-                        "§7- §3KnockBackFFA §aWeapon Selector.",
-                        "§7- /fly in §3lobby",
-                        "§7- /reset in §3MLGRush",
-                        "§7- /skin <name> - §aChange Your Skin",
-                        "§7- /nick - §aHide Your Real Name In Game",
-                        "§7Preview: " + getFormatName(player, "yt"),
-                        "§7Coming Soon...",
+                        l(lang, "chat_prefix", "§5[YT]"),
+                        l(lang, "kbffa_all_kill_effects"),
+                        l(lang, "kbffa_all_projectile_effects"),
+                        l(lang, "kbffa_armor_color"),
+                        l(lang, "kbffa_weapon_selector"),
+                        l(lang, "fly_lobby"),
+                        l(lang, "reset_mlgrush"),
+                        l(lang, "skin"),
+                        l(lang, "nick"),
+                        l(lang, "preview", getFormatName(player, "yt")),
+                        l(lang, "coming_soon"),
                         "",
-                        "§7Require: §c1000 Subscribers",
-                        "§7Note: Other social media application conditions can be found at speedcubing.top/discord.",
-                        "§7Application: §aspeedcubing.top/discord §7Open a ticket."
+                        l(lang, "require_subscribers", "1000"),
+                        l(lang, "note_social_media"),
+                        l(lang, "application")
                 ).build();
         ItemStack ytPlus = new ItemBuilder(Material.WOOL).durability(14).name("§4[YT+]").glow().
                 lore(
-                        "§7- Chat Prefix: §4[YT+]",
-                        "§7- §3KnockBackFFA §7All §aKill Effects.",
-                        "§7- §3KnockBackFFA §7All §aProjectile Effects.",
-                        "§7- §3KnockBackFFA §aCustom Armor Color.",
-                        "§7- §3KnockBackFFA §aWeapon Selector.",
-                        "§7- /fly in §3lobby",
-                        "§7- /reset in §3MLGRush",
-                        "§7- /skin <name> - §aChange Your Skin",
-                        "§7- /nick - §aHide Your Real Name In Game (Custom Name)",
-                        "§7Preview: " + getFormatName(player, "ytplus"),
-                        "§7Coming Soon...",
+                        l(lang, "chat_prefix", "§4[YT+]"),
+                        l(lang, "kbffa_all_kill_effects"),
+                        l(lang, "kbffa_all_projectile_effects"),
+                        l(lang, "kbffa_armor_color"),
+                        l(lang, "kbffa_weapon_selector"),
+                        l(lang, "fly_lobby"),
+                        l(lang, "reset_mlgrush"),
+                        l(lang, "skin"),
+                        l(lang, "nick_custom"),
+                        l(lang, "preview", getFormatName(player, "ytplus")),
+                        l(lang, "coming_soon"),
                         "",
-                        "§7Require: §c5000 Subscribers",
-                        "§7Note: Other social media application conditions can be found at speedcubing.top/discord.",
-                        "§7Application: §aspeedcubing.top/discord §7Open a ticket."
+                        l(lang, "require_subscribers", "5000"),
+                        l(lang, "note_social_media"),
+                        l(lang, "application")
                 ).build();
         ItemStack builder = new ItemBuilder(Material.EMERALD_BLOCK).name("§3[Builder]").
                 lore(
-                        "§7- Chat Prefix: §3[Builder]",
-                        "§7- §3All",
-                        "§7Preview: " + getFormatName(player, "builder"),
+                        l(lang, "chat_prefix", "§3[Builder]"),
+                        l(lang, "all_perks"),
+                        l(lang, "preview", getFormatName(player, "builder")),
                         "",
-                        "§7Apply: Not Available"
+                        l(lang, "apply_unavailable")
                 ).build();
         ItemStack helper = new ItemBuilder(Material.getMaterial(351)).durability(4).name("§9[Helper]").
                 lore(
-                        "§7- Chat Prefix: §9[Helper]",
-                        "§7- §3All",
-                        "§7Preview: " + getFormatName(player, "helper"),
+                        l(lang, "chat_prefix", "§9[Helper]"),
+                        l(lang, "all_perks"),
+                        l(lang, "preview", getFormatName(player, "helper")),
                         "",
-                        "§7Apply: Not Available"
+                        l(lang, "apply_unavailable")
                 ).build();
         ItemStack mod = new ItemBuilder(Material.REDSTONE).name("§c[Mod]").
                 lore(
-                        "§7- Chat Prefix: §c[Mod]",
-                        "§7- §3All",
-                        "§7Preview: " + getFormatName(player, "mod"),
+                        l(lang, "chat_prefix", "§c[Mod]"),
+                        l(lang, "all_perks"),
+                        l(lang, "preview", getFormatName(player, "mod")),
                         "",
-                        "§7Apply: Not Available"
+                        l(lang, "apply_unavailable")
                 ).build();
         ItemStack dev = new ItemBuilder(Material.LAPIS_BLOCK).name("§b[Dev]").
                 lore(
-                        "§7- Chat Prefix: §b[Dev]",
-                        "§7- §3All",
-                        "§7Preview: " + getFormatName(player, "developer"),
+                        l(lang, "chat_prefix", "§b[Dev]"),
+                        l(lang, "all_perks"),
+                        l(lang, "preview", getFormatName(player, "developer")),
                         "",
-                        "§7Apply: Not Available"
+                        l(lang, "apply_unavailable")
                 ).build();
         ItemStack admin = new ItemBuilder(Material.REDSTONE_BLOCK).name("§4[Admin]").
                 lore(
-                        "§7- Chat Prefix: §4[Admin]",
-                        "§7- §3All",
-                        "§7Preview: " + getFormatName(player, "admin"),
+                        l(lang, "chat_prefix", "§4[Admin]"),
+                        l(lang, "all_perks"),
+                        l(lang, "preview", getFormatName(player, "admin")),
                         "",
-                        "§7Apply: Not Available"
+                        l(lang, "apply_unavailable")
                 ).build();
         ItemStack owner = new ItemBuilder(Material.BARRIER).name("§4[Owner]").
                 lore(
-                        "§7- Chat Prefix: §4[Owner]",
-                        "§7- §3All",
-                        "§7Preview: " + getFormatName(player, "owner"),
+                        l(lang, "chat_prefix", "§4[Owner]"),
+                        l(lang, "all_perks"),
+                        l(lang, "preview", getFormatName(player, "owner")),
                         "",
-                        "§7Apply: Not Available"
+                        l(lang, "apply_unavailable")
                 ).build();
         //more ranks
         for (int i = 0; i < 9; i++) {
@@ -308,6 +310,10 @@ public class ranks implements CommandExecutor {
 
         inv.setClickable(false);
         player.openInventory(inv.getInventory());
+    }
+
+    private static String l(int lang, String key, String... param) {
+        return Lang.of("%lang_server_ranks_" + key + "%", param).getString(lang);
     }
 
     private String getFormatName(Player player, String rank) {

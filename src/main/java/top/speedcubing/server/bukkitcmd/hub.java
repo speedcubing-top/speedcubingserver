@@ -7,6 +7,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.lib.bukkit.pluginMessage.BungeePluginMessage;
 import top.speedcubing.server.events.player.HubEvent;
+import top.speedcubing.server.player.User;
+import top.speedcubing.server.lang.Lang;
 
 public class hub implements CommandExecutor {
     @Override
@@ -20,7 +22,7 @@ public class hub implements CommandExecutor {
                 }
                 BungeePluginMessage.switchServer(player, "lobby");
             }
-        } else commandSender.sendMessage("/hub, /l, /lobby");
+        } else commandSender.sendMessage(Lang.of("%lang_server_hub_usage%").get(commandSender).toLegacyText());
         return true;
     }
 }

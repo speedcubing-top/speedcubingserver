@@ -5,13 +5,17 @@ import org.bukkit.Bukkit;
 import top.speedcubing.common.events.ChampsChangedEvent;
 import top.speedcubing.common.events.ConfigReloadEvent;
 import top.speedcubing.common.events.CubingTickEvent;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.lib.bukkit.PlayerUtils;
+import top.speedcubing.server.lang.Lang;
 import top.speedcubing.lib.bukkit.pluginMessage.BungeePluginMessage;
+import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.lib.eventbus.CubingEventHandler;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.utils.CPSMonitor;
 
 public class CubingTick {
+    private static final String CPS_PREFIX = Prefix.CPS;
 
     @CubingEventHandler
     public void cubingTickEvent(CubingTickEvent e) {
@@ -33,7 +37,7 @@ public class CubingTick {
             User target = targetId == null ? null : User.getUser(targetId);
             if (targetId != null && target == null) {
                 CPSMonitor.removeMonitor(user.player.getUniqueId());
-                user.player.sendMessage("§eTarget went offline. Monitoring stopped.");
+                user.player.sendMessage(CPS_PREFIX + Msg.ERROR + "Target went offline. Monitoring stopped.");
             }
 
             if (target != null) {
@@ -41,17 +45,17 @@ public class CubingTick {
                 PlayerUtils.sendActionBar(user.player, status + "§6" + target.player.getName() + " §fCPS: " + cpsColor(target.leftCPS) + target.leftCPS + " §e| " + cpsColor(target.rightCPS) + target.rightCPS);
             } else if (nicked && user.vanished) {
                 if (lobby) {
-                    PlayerUtils.sendActionBar(user.player, "You are currently §cNICKED (in games only) §fand §cVANISHED");
+                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked_vanished_lobby%").getString(user.lang));
                 } else {
-                    PlayerUtils.sendActionBar(user.player, "You are currently §cNICKED §fand §cVANISHED");
+                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked_vanished%").getString(user.lang));
                 }
             } else if (user.vanished) {
-                PlayerUtils.sendActionBar(user.player, "You are currently §cVANISHED");
+                PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_vanished%").getString(user.lang));
             } else if (nicked) {
                 if (lobby) {
-                    PlayerUtils.sendActionBar(user.player, "You are currently §cNICKED (in games only)");
+                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked_lobby%").getString(user.lang));
                 } else {
-                    PlayerUtils.sendActionBar(user.player, "You are currently §cNICKED");
+                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked%").getString(user.lang));
                 }
             }
 

@@ -28,6 +28,7 @@ import top.speedcubing.server.events.player.NickEvent;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.WordDictionary;
+import top.speedcubing.server.lang.Lang;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -100,15 +101,15 @@ public class nick implements CommandExecutor, Listener {
                             boolean random = new Random().nextBoolean();
                             User.getUser(player).uploadSkin(random ? STEVESKIN : ALEXSKIN);
                             if (random) {
-                                player.sendMessage("§aSet your skin to Steve.");
+                                User.getUser(player).sendMessage("%lang_server_nick_skin_steve%");
                             } else {
-                                player.sendMessage("§aSet your skin to Alex.");
+                                User.getUser(player).sendMessage("%lang_server_nick_skin_alex%");
                             }
                             break;
                         case "nicknamechooserandomskin":
                             ProfileSkin profileSkin = speedcubingServer.generateRandomSkinFromDB();
                             User.getUser(player).uploadSkin(profileSkin.getSkin());
-                            player.sendMessage("§aSet your skin to " + profileSkin.getName() + ".");
+                            User.getUser(player).sendMessage("%lang_server_nick_skin_random%", profileSkin.getName());
                             break;
                     }
                     openNickBook(player, NickBook.NAMECHOOSE);
@@ -125,12 +126,12 @@ public class nick implements CommandExecutor, Listener {
                 } else if (strings[0].equalsIgnoreCase("reuse")) {
                     SQLRow result = User.getUser(commandSender).dbSelect("nickname,nickpriority");
                     if (result.getString(0).isEmpty()) {
-                        commandSender.sendMessage("You haven't used a nick before. Please use /nick <nickname>");
+                        User.getUser(commandSender).sendMessage("%lang_server_nick_no_previous%");
                     } else if (result.getString(0).equals(commandSender.getName())) {
                         User.getUser(commandSender).sendMessage("%lang_nick_already%");
                     } else {
                         nick.nickPlayer(result.getString(0), result.getString(1), true, (Player) commandSender, false);
-                        commandSender.sendMessage("§aYou have reused your nickname!");
+                        User.getUser(commandSender).sendMessage("%lang_server_nick_reused%");
                     }
                     return true;
                 }
@@ -150,7 +151,7 @@ public class nick implements CommandExecutor, Listener {
                         nickCheck(user, name, user.player, strings[1].toLowerCase(), false);
                     } else
                         user.sendMessage("%lang_rank_unknown%");
-                } else commandSender.sendMessage("/nick <nickname>\n/nick (use the previous nick)");
+                } else user.sendMessage("%lang_server_nick_usage%");
             } else if (strings.length == 3) {
                 User user = User.getUser(commandSender);
                 if (user.hasPermission("perm.nick.nickrank") || nickRank.get(player.getUniqueId()).equals("default")
@@ -164,11 +165,11 @@ public class nick implements CommandExecutor, Listener {
                         }
                     } else
                         user.sendMessage("%lang_rank_unknown%");
-                } else commandSender.sendMessage("/nick <nickname>\n/nick (use the previous nick)");
+                } else user.sendMessage("%lang_server_nick_usage%");
             } else if (strings.length == 0) {
                 settingNick.put(player.getUniqueId(), true);
                 openNickBook(player, NickBook.EULA);
-            } else commandSender.sendMessage("/nick <nickname>\n/nick (use the previous nick)");
+            } else User.getUser(commandSender).sendMessage("%lang_server_nick_usage%");
         }
         return true;
     }
@@ -253,50 +254,48 @@ public class nick implements CommandExecutor, Listener {
         settingNick.remove(player.getUniqueId());
     }
 
+    private static String t(int lang, String key, String... param) {
+        return Lang.of("%lang_" + key + "%", param).getString(lang);
+    }
+
+    private static ComponentText rankOption(ComponentText text, int lang, String display, String rank) {
+        return text.both("§0➤ " + display + "\n", TextClickEvent.runCommand("/nick nickskin" + rank), TextHoverEvent.showText(t(lang, "server_nick_book_rank_hover", display)));
+    }
+
     public static void openNickBook(Player player, NickBook type) {
+        int lang = User.getUser(player).lang;
         ItemStack book;
         switch (type) {
             case EULA:
                 book = new BookBuilder("eula", "system")
-                        .addPage(new ComponentText().str("Nicknames allow you to\nplay with a different\n\n All rules still apply.\nYou can still be\nreported and all name\nhistory is stored.")
-                                .both("\n\n➤ §nI understand, set up my nickname", TextClickEvent.runCommand("/nick nickrank"), TextHoverEvent.showText("Click here to proceed."))
+                        .addPage(new ComponentText().str(t(lang, "server_nick_book_eula"))
+                                .both("\n\n➤ §n" + t(lang, "server_nick_book_eula_accept"), TextClickEvent.runCommand("/nick nickrank"), TextHoverEvent.showText(t(lang, "server_nick_book_eula_accept_hover")))
                                 .toBungee())
                         .build();
                 BookBuilder.openBook(book, player);
                 break;
             case RANK:
+                ComponentText rankPage = new ComponentText().str(t(lang, "server_nick_book_rank") + "\n\n");
+                rankOption(rankPage, lang, "§8DEFAULT", "default");
+                rankOption(rankPage, lang, "§dVIP", "vip");
+                rankOption(rankPage, lang, "§dVIP+", "vipplus");
+                rankOption(rankPage, lang, "§6PREMIUM", "premium");
+                rankOption(rankPage, lang, "§6PREMIUM+", "premiumplus");
                 if (User.getUser(player).hasPermission("perm.nick.nickrank")) {
-                    book = new BookBuilder("rank", "system")
-                            .addPage(new ComponentText().str("Let's get you set up\nwith your nickname!\nFirst, you'll need to\n choose which §lRANK\n§r§0you would like to be\n" +
-                                            "shown as when nicked.\n\n")
-                                    .both("§0➤ §8DEFAULT\n", TextClickEvent.runCommand("/nick nickskindefault"), TextHoverEvent.showText("Click her to be shown as §8DEFAULT"))
-                                    .both("§0➤ §dVIP\n", TextClickEvent.runCommand("/nick nickskinvip"), TextHoverEvent.showText("Click her to be shown as §dVIP"))
-                                    .both("§0➤ §dVIP+\n", TextClickEvent.runCommand("/nick nickskinvipplus"), TextHoverEvent.showText("Click her to be shown as §dVIP+"))
-                                    .both("§0➤ §6PREMIUM\n", TextClickEvent.runCommand("/nick nickskinpremium"), TextHoverEvent.showText("Click her to be shown as §6PREMIUM"))
-                                    .both("§0➤ §6PREMIUM+\n", TextClickEvent.runCommand("/nick nickskinpremiumplus"), TextHoverEvent.showText("Click her to be shown as §6PREMIUM+"))
-                                    .both("§0➤ §5YT\n", TextClickEvent.runCommand("/nick nickskinyt"), TextHoverEvent.showText("Click her to be shown as §5YT"))
-                                    .both("§0➤ §4YT+\n", TextClickEvent.runCommand("/nick nickskinytplus"), TextHoverEvent.showText("Click her to be shown as §4YT+"))
-                                    .toBungee())
-                            .build();
-                } else {
-                    book = new BookBuilder("rank", "system")
-                            .addPage(new ComponentText().str("Let's get you set up\nwith your nickname!\nFirst, you'll need to\n choose which §lRANK\n§r§0you would like to be\n" +
-                                            "shown as when nicked.\n\n")
-                                    .both("§0➤ §8DEFAULT\n", TextClickEvent.runCommand("/nick nickskindefault"), TextHoverEvent.showText("Click her to be shown as §8DEFAULT"))
-                                    .both("§0➤ §dVIP\n", TextClickEvent.runCommand("/nick nickskinvip"), TextHoverEvent.showText("Click her to be shown as §dVIP"))
-                                    .both("§0➤ §dVIP+\n", TextClickEvent.runCommand("/nick nickskinvipplus"), TextHoverEvent.showText("Click her to be shown as §dVIP+"))
-                                    .both("§0➤ §6PREMIUM\n", TextClickEvent.runCommand("/nick nickskinpremium"), TextHoverEvent.showText("Click her to be shown as §6PREMIUM"))
-                                    .toBungee())
-                            .build();
+                    rankOption(rankPage, lang, "§5YT", "yt");
+                    rankOption(rankPage, lang, "§4YT+", "ytplus");
                 }
+                book = new BookBuilder("rank", "system")
+                        .addPage(rankPage.toBungee())
+                        .build();
                 BookBuilder.openBook(book, player);
                 break;
             case SKIN:
                 book = new BookBuilder("skin", "system")
-                        .addPage(new ComponentText().str("Awesome! Now, which §lSKIN §r§0would you like to\nhave while nicked?\n\n")
-                                .both("➤ My normal skin\n", TextClickEvent.runCommand("/nick nicknamechoosemyskin"), TextHoverEvent.showText("Click here to use your normal skin."))
-                                .both("➤ Steve/Alex skin\n", TextClickEvent.runCommand("/nick nicknamechoosesaskin"), TextHoverEvent.showText("Click here to use Steve/Alex skin."))
-                                .both("➤ Random skin\n", TextClickEvent.runCommand("/nick nicknamechooserandomskin"), TextHoverEvent.showText("Click here to use random preset skin."))
+                        .addPage(new ComponentText().str(t(lang, "server_nick_book_skin") + "\n\n")
+                                .both("➤ " + t(lang, "server_nick_book_skin_normal") + "\n", TextClickEvent.runCommand("/nick nicknamechoosemyskin"), TextHoverEvent.showText(t(lang, "server_nick_book_skin_normal_hover")))
+                                .both("➤ " + t(lang, "server_nick_book_skin_steve_alex") + "\n", TextClickEvent.runCommand("/nick nicknamechoosesaskin"), TextHoverEvent.showText(t(lang, "server_nick_book_skin_steve_alex_hover")))
+                                .both("➤ " + t(lang, "server_nick_book_skin_random") + "\n", TextClickEvent.runCommand("/nick nicknamechooserandomskin"), TextHoverEvent.showText(t(lang, "server_nick_book_skin_random_hover")))
                                 .toBungee())
                         .build();
                 BookBuilder.openBook(book, player);
@@ -309,63 +308,44 @@ public class nick implements CommandExecutor, Listener {
                             .executeResult().getString();
                     nickName.put(player.getUniqueId(), data);
 
-                    if (User.getUser(player).hasPermission("perm.nick.customname")) {
-                        book = new BookBuilder("name", "system")
-                                .addPage(new ComponentText().str("Alright, now you'll need\nto choose the §lNAME to use!§r§0\n\n")
-                                        .both("➤ Enter a name\n", TextClickEvent.runCommand("/nick nicknamecustom"), TextHoverEvent.showText("Click here to enter a custom name."))
-                                        .both("➤ Use a random name\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText("Click here to use randomly generated name."))
-                                        .both("➤ Reuse '" + data + "'\n\n", TextClickEvent.runCommand("/nick " + data + " " + nickRank.get(player.getUniqueId()) + " true"), TextHoverEvent.showText("Click here to reuse '" + data + "'"))
-                                        .str("To go back to being\nyour usual self, type:\n§l/unnick")
-                                        .toBungee())
-                                .build();
-                    } else {
-                        book = new BookBuilder("name", "system")
-                                .addPage(new ComponentText().str("Alright, now you'll need\nto choose the §lNAME to use!§r§0\n\n")
-                                        .both("➤ Use a random name\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText("Click here to use randomly generated name."))
-                                        .both("➤ Reuse '" + data + "'\n\n", TextClickEvent.runCommand("/nick " + data + " " + nickRank.get(player.getUniqueId()) + " true"), TextHoverEvent.showText("Click here to reuse '" + data + "'"))
-                                        .str("To go back to being\nyour usual self, type:\n§l/unnick")
-                                        .toBungee())
-                                .build();
-                    }
+                    ComponentText namePage = new ComponentText().str(t(lang, "server_nick_book_name") + "\n\n");
+                    if (User.getUser(player).hasPermission("perm.nick.customname"))
+                        namePage.both("➤ " + t(lang, "server_nick_book_name_custom") + "\n", TextClickEvent.runCommand("/nick nicknamecustom"), TextHoverEvent.showText(t(lang, "server_nick_book_name_custom_hover")));
+                    namePage.both("➤ " + t(lang, "server_nick_book_name_random") + "\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText(t(lang, "server_nick_book_name_random_hover")))
+                            .both("➤ " + t(lang, "server_nick_book_name_reuse", data) + "\n\n", TextClickEvent.runCommand("/nick " + data + " " + nickRank.get(player.getUniqueId()) + " true"), TextHoverEvent.showText(t(lang, "server_nick_book_name_reuse_hover", data)))
+                            .str(t(lang, "server_nick_book_unnick_hint"));
+                    book = new BookBuilder("name", "system")
+                            .addPage(namePage.toBungee())
+                            .build();
                     BookBuilder.openBook(book, player);
                 }
 
                 break;
             case NAMECUSTOM:
-                String[] lines = {"", "Enter a name"};
+                String[] lines = {"", t(lang, "server_nick_sign_enter_name")};
                 SignBuilder.openSign(player, -61, 1, 41, lines);
                 break;
             case NAMERANDOM:
-                player.sendMessage("§eGenerating a unique random name. Please wait...");
+                User.getUser(player).sendMessage("%lang_server_nick_generating%");
                 speedcubingServer.scheduledPool.execute(() -> {
                     String name = generateRandomString();
                     nickName.put(player.getUniqueId(), name);
-                    if (User.getUser(player).hasPermission("perm.nick.customname")) {
-                        ItemStack b = new BookBuilder("random", "system")
-                                .addPage(new ComponentText().str("We've generated a\nrandom username for\nyou:\n§l" + name + "\n\n")
-                                        .both("   §a§nUSE NAME§r\n", TextClickEvent.runCommand("/nick " + name + " " + nickRank.get(player.getUniqueId()) + " true"),
-                                                TextHoverEvent.showText("Click here to use this name."))
-                                        .both("   §c§nTRY AGAIN§r\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText("Click here to generate another name."))
-                                        .both("\n§0§nOr click here to use custom name", TextClickEvent.runCommand("/nick nicknamecustom"), TextHoverEvent.showText("Click here to use custom name."))
-                                        .toBungee())
-                                .build();
-                        BookBuilder.openBook(b, player);
-                    } else {
-                        ItemStack b = new BookBuilder("random", "system")
-                                .addPage(new ComponentText().str("We've generated a\nrandom username for\nyou:\n§l" + name + "\n\n")
-                                        .both("   §a§nUSE NAME§r\n", TextClickEvent.runCommand("/nick " + name + " " + nickRank.get(player.getUniqueId()) + " true"),
-                                                TextHoverEvent.showText("Click here to use this name."))
-                                        .both("   §c§nTRY AGAIN§r\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText("Click here to generate another name."))
-                                        .toBungee())
-                                .build();
-                        BookBuilder.openBook(b, player);
-                    }
+                    ComponentText randomPage = new ComponentText().str(t(lang, "server_nick_book_random", name) + "\n\n")
+                            .both("   §a§n" + t(lang, "server_nick_book_random_use") + "§r\n", TextClickEvent.runCommand("/nick " + name + " " + nickRank.get(player.getUniqueId()) + " true"),
+                                    TextHoverEvent.showText(t(lang, "server_nick_book_random_use_hover")))
+                            .both("   §c§n" + t(lang, "server_nick_book_random_retry") + "§r\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText(t(lang, "server_nick_book_random_retry_hover")));
+                    if (User.getUser(player).hasPermission("perm.nick.customname"))
+                        randomPage.both("\n§0§n" + t(lang, "server_nick_book_random_custom"), TextClickEvent.runCommand("/nick nicknamecustom"), TextHoverEvent.showText(t(lang, "server_nick_book_random_custom_hover")));
+                    ItemStack b = new BookBuilder("random", "system")
+                            .addPage(randomPage.toBungee())
+                            .build();
+                    BookBuilder.openBook(b, player);
                 });
                 break;
             case RULE:
                 book = new BookBuilder("rule", "system")
-                        .addPage(new ComponentText().str("You have finished\nsetting up your\nnickname!\n\nYour nickname is:\n" + Rank.rankByName.get(nickRank.get(player.getUniqueId())).getFormat().getPrefix() + nickName.get(player.getUniqueId()) + "§0." +
-                                        "\n\n§0To go back to being\nyour usual self, type:\n§l/unnick")
+                        .addPage(new ComponentText().str(t(lang, "server_nick_book_done", Rank.rankByName.get(nickRank.get(player.getUniqueId())).getFormat().getPrefix() + nickName.get(player.getUniqueId())) +
+                                        "\n\n" + t(lang, "server_nick_book_unnick_hint"))
                                 .toBungee())
                         .build();
                 BookBuilder.openBook(book, player);

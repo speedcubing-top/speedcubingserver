@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.lib.utils.SQL.SQLRow;
+import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.player.User;
 
 public class premium implements CommandExecutor {
@@ -13,9 +14,9 @@ public class premium implements CommandExecutor {
             User user = User.getUser(commandSender);
             SQLRow r = user.dbSelect("name,autologin");
             boolean disable = r.getBoolean(1);
-            ((Player) commandSender).kickPlayer((disable ? "§cDisabled" : "§aEnabled") + "§6Premium Check for user \"§b" + r.getString(0) + "§6\".");
+            ((Player) commandSender).kickPlayer(Lang.of(disable ? "%lang_server_premium_check_disabled%" : "%lang_server_premium_check_enabled%", r.getString(0)).getString(user.lang));
             user.dbUpdate("autologin=" + (disable ? 0 : 1));
-        } else commandSender.sendMessage("/premium");
+        } else User.getUser(commandSender).sendMessage("%lang_server_premium_usage%");
         return true;
     }
 }

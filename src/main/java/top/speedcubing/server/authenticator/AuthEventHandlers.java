@@ -19,6 +19,8 @@ import org.bukkit.map.MapView;
 import org.bukkit.scheduler.BukkitRunnable;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
+import top.speedcubing.server.utils.Prefix;
+import top.speedcubing.common.text.Msg;
 
 public class AuthEventHandlers implements Listener {
     private static final String qrCodeURL = "https://quickchart.io/chart?chs=128x128&cht=qr&chl=otpauth://totp/%label?secret=%key";
@@ -35,7 +37,7 @@ public class AuthEventHandlers implements Listener {
         if (!auth.isAuthEnable()) {
             if (user.isStaff) {
                 auth.setAuthEnable();
-                p.kickPlayer("§aForced turn on 2FA\nPlease rejoin server!");
+                p.kickPlayer(Prefix.TWO_FA + Msg.SUCCESS + "2FA has been enabled for your staff account.\n" + Msg.INFO + "Please rejoin the server!");
             }
             return;
         }
@@ -65,10 +67,10 @@ public class AuthEventHandlers implements Listener {
                         mapMeta.setDisplayName(ChatColor.GOLD + "QR Code");
                         mapItem.setItemMeta(mapMeta);
                         p.getInventory().addItem(mapItem);
-                        p.sendMessage("§6Your QRCode URL: " + url);
+                        user.sendMessage("%lang_server_2fa_qr_url%", url);
                     } catch (IOException ee) {
                         ee.printStackTrace();
-                        p.sendMessage(ChatColor.RED + "An error occurred! Is the URL correct?");
+                        user.sendMessage("%lang_server_2fa_qr_error%");
                     }
                 }
             }.runTaskAsynchronously(speedcubingServer.instance);

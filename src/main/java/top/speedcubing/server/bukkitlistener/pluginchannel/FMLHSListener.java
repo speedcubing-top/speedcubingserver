@@ -44,7 +44,7 @@ public class FMLHSListener implements PluginMessageListener {
                 if (!punished) {
                     for (Pattern p : Configuration.blockedMod) {
                         if (p.matcher(a2).matches()) {
-                            player.kickPlayer("Invalid Modification Found.");
+                            User.getUser(player).kick("%lang_server_invalid_mod%");
                             punished = true;
                             break;
                         }

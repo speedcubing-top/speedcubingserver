@@ -24,14 +24,14 @@ public class skin extends CubingCommand {
                 target = user.realName;
             else if (args.length == 1)
                 target = args[0];
-            else player.sendMessage("/skin , /skin <player>");
+            else user.sendMessage("%lang_server_skin_usage%");
 
             if (!target.isEmpty() && !target.equalsIgnoreCase(user.realName)) {
                 ProfileSkin profileSkin;
                 try {
                     profileSkin = MojangAPI.getSkinByName(target);
                     if (profileSkin == null) {
-                        user.sendMessage("%");
+                        user.sendMessage("%lang_server_skin_not_found%");
                         return;
                     }
                 } catch (Exception e) {
@@ -42,7 +42,7 @@ public class skin extends CubingCommand {
             } else if (target.equalsIgnoreCase(user.realName)) {
                 user.updateSkin(user.defaultSkin, target);
             } else {
-                player.sendMessage("§cDefault skin not found");
+                user.sendMessage("%lang_server_skin_default_not_found%");
             }
         }
     }

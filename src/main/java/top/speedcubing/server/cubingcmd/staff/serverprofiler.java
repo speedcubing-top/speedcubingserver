@@ -4,6 +4,7 @@ import java.util.Set;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.profiler.Profiler;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.system.command.CubingCommand;
 
@@ -20,7 +21,10 @@ public class serverprofiler extends CubingCommand {
         if (sender instanceof Player player) {
             User user = User.getUser(player);
             if (user == null || !ALLOWED.contains(user.realRank)) {
-                sender.sendMessage("§cNo Permission");
+                if (user != null)
+                    user.sendMessage("%lang_general_noperm%");
+                else
+                    sender.sendMessage(Msg.SYSTEM + Msg.NO_PERMISSION);
                 return;
             }
         }

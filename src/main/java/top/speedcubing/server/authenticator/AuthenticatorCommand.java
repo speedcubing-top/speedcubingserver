@@ -14,6 +14,8 @@ import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.StringUtils;
 import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.player.User;
+import top.speedcubing.server.utils.Prefix;
+import top.speedcubing.common.text.Msg;
 
 public class AuthenticatorCommand implements CommandExecutor {
     private final Map<UUID, Integer> verifiedCount = new HashMap<>();
@@ -21,7 +23,7 @@ public class AuthenticatorCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         if (Bukkit.getServerName().equalsIgnoreCase("limbo")) {
-            sender.sendMessage("§c2FA is disabled here.");
+            User.getUser(sender).sendMessage("%lang_server_2fa_disabled_here%");
             Player player = (Player) sender;
             player.performCommand("l");
             return true;
@@ -31,7 +33,7 @@ public class AuthenticatorCommand implements CommandExecutor {
             return true;
         } else if (args.length == 1) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage("§cThis command can only be used by players.");
+                sender.sendMessage(Prefix.TWO_FA + Msg.PLAYERS_ONLY);
                 return true;
             }
 
@@ -43,16 +45,16 @@ public class AuthenticatorCommand implements CommandExecutor {
             if (StringUtils.isInt(code)) {
                 if (code.length() == 6) {
                     if (auth.hasSessions()) {
-                            player.sendMessage("§aYou have successfully authenticated");
+                            User.getUser(player).sendMessage("%lang_server_2fa_authenticated%");
                         return true;
                     }
                     if (auth.hasKey()) {
                         String key = auth.getKey();
                         if (AuthUtils.authorize(key, Integer.parseInt(code))) {
                             auth.setSession(true);
-                            player.sendMessage("§aYou have successfully authenticated");
+                            User.getUser(player).sendMessage("%lang_server_2fa_authenticated%");
                         } else {
-                            player.sendMessage("§cThe key you entered is not valid. Please try again.");
+                            User.getUser(player).sendMessage("%lang_server_2fa_wrong_code%");
                             if (verifiedCount.containsKey(player.getUniqueId())) {
                                 Integer score = verifiedCount.get(player.getUniqueId());
                                 if (score != 10) {
@@ -66,17 +68,17 @@ public class AuthenticatorCommand implements CommandExecutor {
                             }
                         }
                         } else {
-                        player.sendMessage("§cYou don't have a key. Please use /2fa setup <code>.");
+                        User.getUser(player).sendMessage("%lang_server_2fa_no_key%");
                     }
                 } else {
-                    player.sendMessage("§cInvalid key entered");
+                    User.getUser(player).sendMessage("%lang_server_2fa_invalid_code%");
                 }
             } else if (args[0].equals("reset")) {
                 if (auth.hasSessions()) {
                     auth.setSession(false);
-                    player.sendMessage("§aSuccessfully reset your trusted sessions");
+                    User.getUser(player).sendMessage("%lang_server_2fa_sessions_reset%");
                 } else {
-                    player.sendMessage("§cYou don't have a trusted session");
+                    User.getUser(player).sendMessage("%lang_server_2fa_no_session%");
                 }
             }
         } else if (args.length == 2) {
@@ -93,27 +95,27 @@ public class AuthenticatorCommand implements CommandExecutor {
                                 String key = auth.noKey;
                                 if (AuthUtils.authorize(key, Integer.parseInt(code))) {
                                     auth.setKey(key);
-                                    player.sendMessage("§a2FA successfully set up.");
+                                    User.getUser(player).sendMessage("%lang_server_2fa_setup_done%");
                                     removeMap(player);
                                     auth.noKey = null;
                                 } else {
-                                    player.sendMessage("§cInvalid key entered.");
+                                    User.getUser(player).sendMessage("%lang_server_2fa_invalid_code%");
                                 }
                             } else {
-                                player.sendMessage("§cAn error occurred. Please contact staff.");
+                                User.getUser(player).sendMessage("%lang_server_2fa_error%");
                             }
                         } else {
-                            player.sendMessage("§cInvalid key entered");
+                            User.getUser(player).sendMessage("%lang_server_2fa_invalid_code%");
                         }
                     } else {
-                        player.sendMessage("§c2FA is already set up. Use `/2fa <code>` to authenticate yourself.");
+                        User.getUser(player).sendMessage("%lang_server_2fa_already_setup%");
                     }
                 } else {
-                    player.sendMessage("§c2FA is disabled.");
+                    User.getUser(player).sendMessage("%lang_server_2fa_disabled%");
                 }
             } else if (args[0].equalsIgnoreCase("reset")) {
                 if (sender instanceof Player) {
-                    sender.sendMessage("§cThis command can only be used from the console.");
+                    User.getUser(sender).sendMessage("%lang_server_2fa_console_only%");
                     return true;
                 }
 
@@ -121,12 +123,12 @@ public class AuthenticatorCommand implements CommandExecutor {
                 try (SQLConnection connection = Database.getCubing()) {
                     String realTargetName = connection.select("name").from("playersdata").where("name='" + targetName + "'").executeResult().getString();
                     if (realTargetName == null) {
-                        sender.sendMessage("§cThe player you entered does not exist.");
+                        sender.sendMessage(Prefix.TWO_FA + Msg.PLAYER_NOT_FOUND);
                         return true;
                     }
                     int id = connection.select("id").from("playersdata").where("name='" + targetName + "'").executeResult().getInt();
                     AuthData.map.get(User.getUser(id)).setSession(false);
-                    sender.sendMessage("§aSuccessfully reset " + realTargetName + " trusted sessions");
+                    sender.sendMessage(Prefix.TWO_FA + Msg.SUCCESS + "Reset trusted sessions of " + Msg.VALUE + realTargetName + Msg.SUCCESS + ".");
                 }
             }
         }
@@ -138,9 +140,9 @@ public class AuthenticatorCommand implements CommandExecutor {
     }
 
     private void usage(CommandSender sender) {
-        sender.sendMessage("§6[2FA Commands]\n" +
-                "/2fa <code> - login\n" +
-                "/2fa setup <code> - setup your 2FA\n" +
-                "/2fa reset - Reset your trusted sessions");
+        if (sender instanceof Player)
+            User.getUser(sender).sendMessage("%lang_server_2fa_usage%");
+        else
+            sender.sendMessage(Prefix.TWO_FA + Msg.usage("/2fa reset <player>"));
     }
 }

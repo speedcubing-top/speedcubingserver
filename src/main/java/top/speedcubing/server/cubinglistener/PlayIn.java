@@ -64,7 +64,7 @@ public class PlayIn {
                         nick.openNickBook(e.getPlayer(), nick.NickBook.RULE);
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        e.getPlayer().sendMessage("§cError executing command: " + ex.getMessage());
+                        User.getUser(e.getPlayer()).sendMessage("%lang_server_command_error%", String.valueOf(ex.getMessage()));
                     }
                 });
             }

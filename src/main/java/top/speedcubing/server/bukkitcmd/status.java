@@ -1,5 +1,7 @@
 package top.speedcubing.server.bukkitcmd;
 
+import top.speedcubing.server.lang.Lang;
+
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -21,9 +23,9 @@ public class status implements CommandExecutor {
 
     private void open(Player player) {
         User user = User.getUser(player);
-        InventoryBuilder inv = new InventoryBuilder(54, "§bSpeedcubing Server §aStatus");
+        InventoryBuilder inv = new InventoryBuilder(54, Lang.of("%lang_server_status_title%").getString(user.lang));
         ItemStack grayGlass = new ItemBuilder(Material.STAINED_GLASS_PANE).name(" ").durability(7).build();
-        ItemStack cps = generateItem(player, Material.WATCH, "CPS", hasPermission(player, "cps"), " ", "§7Preview:", "§7[CPS §a0 §7| §a0§7]");
+        ItemStack cps = generateItem(player, Material.WATCH, "CPS", hasPermission(player, "cps"), " ", Lang.of("%lang_server_status_preview%").getString(user.lang), "§7[CPS §a0 §7| §a0§7]");
         inv.setItem(cps, ClickInventoryEvent -> {
             if (user.status.equalsIgnoreCase("cps")) {
                 player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 2f);
@@ -37,7 +39,7 @@ public class status implements CommandExecutor {
                 open(player);
             } else {
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1f, 0.5f);
-                player.sendMessage("§cYou don't have permission to use this status!");
+                user.sendMessage("%lang_server_status_no_permission%");
             }
         }, 10);
         for (int i = 0; i < 9; i++) {
@@ -54,7 +56,8 @@ public class status implements CommandExecutor {
 
     private ItemStack generateItem(Player player, Material material, String name, boolean unlock, String... lore) {
         boolean selected = false;
-        String selectedItem = User.getUser(player).status;
+        User user = User.getUser(player);
+        String selectedItem = user.status;
         if (selectedItem == null) {
             selectedItem = "null";
         }
@@ -70,15 +73,15 @@ public class status implements CommandExecutor {
         }
         if (unlock && !selected) {
             builder.addLore(" ");
-            builder.addLore("§eClick to select!");
+            builder.addLore(Lang.of("%lang_server_status_click_select%").getString(user.lang));
         } else if (!selected) {
             builder.addLore(" ");
-            builder.addLore("§7Unlocked in speedcubing.top/discord. ask for help.");
+            builder.addLore(Lang.of("%lang_server_status_unlock_hint%").getString(user.lang));
             builder.addLore(" ");
-            builder.addLore("§cLocked!");
+            builder.addLore(Lang.of("%lang_server_status_locked%").getString(user.lang));
         } else {
             builder.addLore(" ");
-            builder.addLore("§aSelected!");
+            builder.addLore(Lang.of("%lang_general_selected%").getString(user.lang));
         }
 
         return builder.build();

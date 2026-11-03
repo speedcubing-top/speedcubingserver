@@ -6,21 +6,24 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.lib.bukkit.entity.Hologram;
 import top.speedcubing.server.player.User;
+import top.speedcubing.server.utils.Prefix;
 
 public class cpsdisplay implements CommandExecutor {
+    private static final String PREFIX = Prefix.CPS;
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         if (strings.length != 1) {
-            commandSender.sendMessage("/cpsdisplay <player>");
+            commandSender.sendMessage(PREFIX + Msg.usage("/cpsdisplay <player>"));
             return true;
         }
         String target = strings[0];
         Player player = Bukkit.getPlayerExact(target);
         if (player == null) {
-            commandSender.sendMessage("Player not found.");
+            commandSender.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
             return true;
         }
         update(player);

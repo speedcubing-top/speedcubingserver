@@ -10,13 +10,17 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 
 public class deepfry implements CommandExecutor {
+    private static final String PREFIX = Prefix.STAFF;
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         // Check if the command has exactly one argument
         if (strings.length != 1) {
-            commandSender.sendMessage("Usage: /deepfry <player>");
+            commandSender.sendMessage(PREFIX + Msg.usage("/deepfry <player>"));
             return true;
         }
 
@@ -25,7 +29,7 @@ public class deepfry implements CommandExecutor {
 
         // Check if the target player is online
         if (targetPlayer == null) {
-            commandSender.sendMessage("Player '" + strings[0] + "' not found or not online.");
+            commandSender.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
             return true;
         }
 
@@ -37,7 +41,7 @@ public class deepfry implements CommandExecutor {
         nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(7, 4));
         targetPlayer.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 9));
         targetPlayer.removePotionEffect(PotionEffectType.NIGHT_VISION);
-        commandSender.sendMessage("Deep fried " + targetPlayer.getName() + "!");
+        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Deep fried " + Msg.VALUE + targetPlayer.getName() + Msg.SUCCESS + "!");
         //nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(7, 0));
 
 

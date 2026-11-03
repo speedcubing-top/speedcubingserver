@@ -5,9 +5,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import top.speedcubing.common.text.Msg;
 import top.speedcubing.server.system.command.CubingCommand;
+import top.speedcubing.server.utils.Prefix;
 
 public class heal extends CubingCommand {
+    private static final String PREFIX = Prefix.STAFF;
+
     public heal() {
         super("heal");
     }
@@ -17,17 +21,17 @@ public class heal extends CubingCommand {
         if (commandSender instanceof Player player) {
             if (args.length == 0) {
                 player.setHealth(player.getMaxHealth());
-                player.sendMessage("Healed!");
+                player.sendMessage(PREFIX + Msg.SUCCESS + "Healed!");
             } else if (args.length == 1) {
                 Player target = Bukkit.getPlayer(args[0]);
                 if (target != null) {
                     target.setHealth(target.getMaxHealth());
-                    player.sendMessage("Healed!");
+                    player.sendMessage(PREFIX + Msg.SUCCESS + "Healed " + Msg.VALUE + target.getName() + Msg.SUCCESS + "!");
                 } else {
-                    player.sendMessage("player not found!");
+                    player.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
                 }
             } else {
-                player.sendMessage("/heal");
+                player.sendMessage(PREFIX + Msg.usage("/heal [player]"));
             }
         }
     }

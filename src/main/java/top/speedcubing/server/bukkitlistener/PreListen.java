@@ -34,6 +34,7 @@ import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.server.authenticator.AuthEventHandlers;
 import top.speedcubing.server.bukkitcmd.staff.cpsdisplay;
 import top.speedcubing.server.configuration.Configuration;
+import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.login.LoginContext;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
@@ -141,7 +142,7 @@ public class PreListen implements Listener {
                             .setInt(1, row.getInt("id"))
                             .executeResult();
                     if (onlinePlayers.isEmpty()) {
-                        e.setKickMessage("[System] error (2)");
+                        e.setKickMessage(Lang.of("%lang_server_login_error%", "2").getString(1));
                         e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
                         return;
                     }
@@ -152,7 +153,7 @@ public class PreListen implements Listener {
 
             // maintenance
             if (!Rank.isStaff(rank.rank()) && Bukkit.hasWhitelist() && (row.getBoolean("serverwhitelist"))) {
-                e.setKickMessage("§cThis server is currently under maintenance.");
+                e.setKickMessage(Lang.of("%lang_server_maintenance%").getString(row.getInt("lang")));
                 e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
                 return;
             }
@@ -160,7 +161,7 @@ public class PreListen implements Listener {
             ctxMap.put(uuid, new LoginContext(row, onlinePlayer, rank));
         } catch (Exception ex) {
             ex.printStackTrace();
-            e.setKickMessage("[System] error (5), please rejoin");
+            e.setKickMessage(Lang.of("%lang_server_login_error%", "5").getString(1));
             e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
         }
     }
@@ -181,7 +182,7 @@ public class PreListen implements Listener {
         LoginContext ctx = ctxMap.get(player.getUniqueId());
         ctxMap.remove(player.getUniqueId());
         if (ctx == null) {
-            player.kickPlayer("[System] error (6), please rejoin");
+            player.kickPlayer(Lang.of("%lang_server_login_error%", "6").getString(1));
             return;
         }
 

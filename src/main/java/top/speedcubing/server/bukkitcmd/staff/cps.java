@@ -11,12 +11,20 @@ import org.bukkit.entity.Player;
 
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 
 import top.speedcubing.server.utils.CPSMonitor;
 
 public class cps implements CommandExecutor {
+
+    private static final String PREFIX = Prefix.CPS;
+
+    private static void send(Audience aud, String message) {
+        aud.sendMessage(LegacyComponentSerializer.legacySection().deserialize(PREFIX + message));
+    }
 
     private final BukkitAudiences audiences;
 
@@ -37,28 +45,28 @@ public class cps implements CommandExecutor {
 
         if (args.length == 0) {
             if (!(sender instanceof Player)) {
-                aud.sendMessage(Component.text("Only players can toggle CPS monitoring.").color(NamedTextColor.YELLOW));
+                send(aud, Msg.PLAYERS_ONLY);
                 return true;
             }
             UUID staffId = ((Player) sender).getUniqueId();
             UUID removed = CPSMonitor.removeMonitor(staffId);
             if (removed != null) {
-                aud.sendMessage(Component.text("CPS monitoring stopped.").color(NamedTextColor.GREEN));
+                send(aud, Msg.SUCCESS + "CPS monitoring stopped.");
             } else {
-                aud.sendMessage(Component.text("You are not monitoring anyone.").color(NamedTextColor.YELLOW));
+                send(aud, Msg.ERROR + "You are not monitoring anyone.");
             }
             return true;
         }
 
         if (args.length == 1) {
             if (!(sender instanceof Player staffPlayer)) {
-                aud.sendMessage(Component.text("Only players can monitor action bars.").color(NamedTextColor.YELLOW));
+                send(aud, Msg.PLAYERS_ONLY);
                 return true;
             }
 
             Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null) {
-                aud.sendMessage(Component.text("Player not found or offline.").color(NamedTextColor.RED));
+                send(aud, Msg.PLAYER_NOT_FOUND);
                 return true;
             }
 
@@ -67,14 +75,14 @@ public class cps implements CommandExecutor {
 
             UUID previous = CPSMonitor.putMonitor(staffId, targetId);
             if (previous != null && previous.equals(targetId)) {
-                aud.sendMessage(Component.text("You are already monitoring " + target.getName() + ".").color(NamedTextColor.YELLOW));
+                send(aud, Msg.ERROR + "You are already monitoring " + Msg.VALUE + target.getName() + Msg.ERROR + ".");
             } else {
-                aud.sendMessage(Component.text("Started monitoring " + target.getName() + "'s CPS (action bar). Run /" + label + " again to stop.").color(NamedTextColor.GREEN));
+                send(aud, Msg.SUCCESS + "Started monitoring " + Msg.VALUE + target.getName() + Msg.SUCCESS + "'s CPS (action bar). Run /" + label + " again to stop.");
             }
             return true;
         }
 
-        aud.sendMessage(Component.text("Usage: /" + label + " [player]").color(NamedTextColor.YELLOW));
+        send(aud, Msg.usage("/" + label + " [player]"));
         return true;
     }
 }

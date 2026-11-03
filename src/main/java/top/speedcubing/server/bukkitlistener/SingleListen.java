@@ -11,6 +11,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import top.speedcubing.lib.utils.ReflectionUtils;
+import top.speedcubing.server.player.User;
 
 public class SingleListen implements Listener {
 
@@ -39,7 +40,7 @@ public class SingleListen implements Listener {
             e.setCancelled(true);
         else if (e.getReason().equals("Timed out")) {
             e.setCancelled(true);
-            e.getPlayer().sendMessage("You were disconnected: Timed out.");
+            User.getUser(e.getPlayer()).sendMessage("%lang_server_timed_out%");
         }
     }
 

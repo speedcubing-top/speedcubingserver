@@ -8,6 +8,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import top.speedcubing.common.database.Database;
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.common.utils.CubingTimeFormat;
 import top.speedcubing.lib.bukkit.inventory.InventoryBuilder;
 import top.speedcubing.lib.bukkit.inventory.ItemBuilder;
@@ -22,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 public class nicklogs extends CubingCommand implements Listener {
+    private static final String PREFIX = Prefix.STAFF;
+
     public nicklogs() {
         super("nicklogs");
     }
@@ -31,17 +35,17 @@ public class nicklogs extends CubingCommand implements Listener {
             return;
         }
         if (args.length != 1) {
-            sender.sendMessage("§cUsage: /nicklogs <player>");
+            sender.sendMessage(PREFIX + Msg.usage("/nicklogs <player>"));
             return;
         }
         String name = args[0];
         if (name.contains("'")) {
-            sender.sendMessage("§cInvalid name");
+            sender.sendMessage(PREFIX + Msg.ERROR + "Invalid name.");
             return;
         }
         List<NickLogData> nickLogs = getNickLogs(name);
         if (nickLogs == null) {
-            sender.sendMessage("§cThis player doesn't have any nick logs");
+            sender.sendMessage(PREFIX + Msg.ERROR + "This player doesn't have any nick logs.");
             return;
         }
         open(player, name, nickLogs, 0);
@@ -61,7 +65,7 @@ public class nicklogs extends CubingCommand implements Listener {
         String name = title.substring(13, title.indexOf(" ("));
         List<NickLogData> nickLogs = getNickLogs(name);
         if (nickLogs == null) {
-            player.sendMessage("§cThis player doesn't have any nick logs");
+            player.sendMessage(PREFIX + Msg.ERROR + "This player doesn't have any nick logs.");
             return;
         }
         int page = Integer.parseInt(title.split("Page ")[1].split("/")[0]);

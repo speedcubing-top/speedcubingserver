@@ -8,13 +8,17 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 
 public class freeze implements CommandExecutor {
+    private static final String PREFIX = Prefix.STAFF;
+
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
         // Check if the command has exactly one argument
         if (strings.length != 1) {
-            commandSender.sendMessage("Usage: /freeze <player>");
+            commandSender.sendMessage(PREFIX + Msg.usage("/freeze <player>"));
             return true;
         }
 
@@ -23,14 +27,14 @@ public class freeze implements CommandExecutor {
 
         // Check if the target player is online
         if (targetPlayer == null) {
-            commandSender.sendMessage("Player '" + strings[0] + "' not found or not online.");
+            commandSender.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
             return true;
         }
 
         // Get the NMS player
         EntityPlayer nmsPlayer = ((CraftPlayer) targetPlayer).getHandle();
         nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(7, 25));
-        commandSender.sendMessage("Frozen " + nmsPlayer.getName() + "!");
+        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Frozen " + Msg.VALUE + nmsPlayer.getName() + Msg.SUCCESS + "!");
         return true;
     }
 }

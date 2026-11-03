@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.server.events.player.ToggleFlyEvent;
 import top.speedcubing.server.player.User;
+import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.system.command.CubingCommand;
 
 public class fly extends CubingCommand {
@@ -24,6 +25,6 @@ public class fly extends CubingCommand {
 
                 user.dbUpdate("flying=" + (allowFlight ? 0 : 1));
             }
-        } else commandSender.sendMessage("/fly");
+        } else commandSender.sendMessage(Lang.of("%lang_server_fly_usage%").get(commandSender).toLegacyText());
     }
 }

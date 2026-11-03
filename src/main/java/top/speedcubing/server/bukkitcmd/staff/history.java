@@ -15,6 +15,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import top.speedcubing.common.database.Database;
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.common.utils.CubingTimeFormat;
 import top.speedcubing.lib.bukkit.inventory.ItemBuilder;
 import top.speedcubing.lib.minecraft.text.ComponentText;
@@ -27,6 +29,7 @@ import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.server.player.User;
 
 public class history implements CommandExecutor, Listener {
+    private static final String PREFIX = Prefix.STAFF;
     List<Inventory> banList = new ArrayList<>();
     List<Inventory> muteList = new ArrayList<>();
 
@@ -40,7 +43,7 @@ public class history implements CommandExecutor, Listener {
         if (args.length == 1) {
             String targetName = args[0];
             if (!openHistoryGui(player, targetName)) {
-                player.sendMessage("§cThe player has never joined this server.");
+                player.sendMessage(PREFIX + Msg.ERROR + "The player has never joined this server.");
                 return true;
             }
 
@@ -62,7 +65,7 @@ public class history implements CommandExecutor, Listener {
                         if (e.isLeftClick()) {
                             banList = generateBanGUI(info);
                             if (banList.isEmpty()) {
-                                player.sendMessage("§cThis player doesn't have any ban punishment logs");
+                                player.sendMessage(PREFIX + Msg.ERROR + "This player doesn't have any ban punishment logs.");
                                 player.closeInventory();
                                 return;
                             }
@@ -70,7 +73,7 @@ public class history implements CommandExecutor, Listener {
                         } else if (e.isRightClick()) {
                             muteList = generateMuteGUI(info);
                             if (muteList.isEmpty()) {
-                                player.sendMessage("§cThis player doesn't have any mute punishment logs");
+                                player.sendMessage(PREFIX + Msg.ERROR + "This player doesn't have any mute punishment logs.");
                                 player.closeInventory();
                                 return;
                             }
@@ -104,7 +107,7 @@ public class history implements CommandExecutor, Listener {
         e.setCancelled(true);
         switch (e.getRawSlot()) {
             case 1:
-                player.sendMessage(new ComponentText().both("§eClick here to query " + name + "'s client"
+                player.sendMessage(new ComponentText().both(PREFIX + Msg.VALUE + "Click here to query " + name + "'s client"
                                 , TextClickEvent.runCommand("/clientinfo " + name)
                                 , TextHoverEvent.showText("§eClick me!"))
                         .toBungee());

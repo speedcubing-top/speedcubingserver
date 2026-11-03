@@ -29,8 +29,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 
 public class sendpacket implements CommandExecutor, Listener {
+    private static final String PREFIX = Prefix.STAFF;
     public final static Set<Player> whoWasFucked = Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override
@@ -38,12 +41,12 @@ public class sendpacket implements CommandExecutor, Listener {
         if (!(sender instanceof Player)) return true;
         Player player = (Player) sender;
         if (args.length != 2) {
-            player.sendMessage("§cUsage: /sendpacket <player> <packet>");
+            player.sendMessage(PREFIX + Msg.usage("/sendpacket <player> <packet>"));
             return true;
         }
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
-            player.sendMessage("§cPlayer not found");
+            player.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
             return true;
         }
         String function = args[1];

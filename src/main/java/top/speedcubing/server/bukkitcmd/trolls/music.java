@@ -16,8 +16,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.utils.Prefix;
 
 public class music implements CommandExecutor, Listener {
+    private static final String PREFIX = Prefix.MUSIC;
     public static Song song;
     public static RadioSongPlayer radioSongPlayer;
     public static boolean broadcast = false;
@@ -30,26 +33,26 @@ public class music implements CommandExecutor, Listener {
 //        }
         if (!(sender instanceof Player player)) return true;
         if (args.length == 0) {
-            player.sendMessage("§cUsage: /music <play|resume|pause|loop|stop|add|remove|broadcast>");
+            player.sendMessage(PREFIX + Msg.usage("/music <play|resume|pause|loop|stop|add|remove|broadcast>"));
             return true;
         }
         if (args[0].equalsIgnoreCase("play")) {
             if (radioSongPlayer != null && radioSongPlayer.isPlaying()) {
-                player.sendMessage("§cSong is already playing.");
+                player.sendMessage(PREFIX + Msg.ERROR + "Song is already playing.");
                 return true;
             }
             if (args.length != 2) {
-                player.sendMessage("§cUsage: /music play <song>");
+                player.sendMessage(PREFIX + Msg.usage("/music play <song>"));
                 return true;
             }
             File file = new File("/storage/mcsongs/" + args[1] + ".nbs");
             if (!file.exists()) {
-                player.sendMessage("§cSong not found.");
+                player.sendMessage(PREFIX + Msg.ERROR + "Song not found.");
                 return true;
             }
             song = NBSDecoder.parse(file);
             if (song == null) {
-                player.sendMessage("§cSong load failed.");
+                player.sendMessage(PREFIX + Msg.ERROR + "Song load failed.");
                 return true;
             }
             StereoMode stereoMode = new StereoMode();
@@ -58,88 +61,88 @@ public class music implements CommandExecutor, Listener {
             radioSongPlayer.addPlayer(player);
             radioSongPlayer.setPlaying(true);
             radioSongPlayer.setChannelMode(stereoMode);
-            player.sendMessage("§aPlaying song.");
-            player.sendMessage("§aLoop: " + (radioSongPlayer.getRepeatMode() == RepeatMode.ALL ? "On" : "Off"));
-            player.sendMessage("§aBroadcast: " + (broadcast ? "On" : "Off"));
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Playing song.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Loop: " + Msg.VALUE + (radioSongPlayer.getRepeatMode() == RepeatMode.ALL ? "On" : "Off"));
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Broadcast: " + Msg.VALUE + (broadcast ? "On" : "Off"));
             return true;
         }
         if (args[0].equalsIgnoreCase("resume")) {
             if (radioSongPlayer == null) {
-                player.sendMessage("§cNo song to resume.");
+                player.sendMessage(PREFIX + Msg.ERROR + "No song to resume.");
                 return true;
             }
             radioSongPlayer.setPlaying(true);
-            player.sendMessage("§aResumed song.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Resumed song.");
             return true;
         }
         if (args[0].equalsIgnoreCase("pause")) {
             if (radioSongPlayer == null) {
-                player.sendMessage("§cNo song to pause.");
+                player.sendMessage(PREFIX + Msg.ERROR + "No song to pause.");
                 return true;
             }
             radioSongPlayer.setPlaying(false);
-            player.sendMessage("§aPaused song.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Paused song.");
             return true;
         }
         if (args[0].equalsIgnoreCase("loop")) {
             if (radioSongPlayer == null) {
-                player.sendMessage("§cNo song to loop.");
+                player.sendMessage(PREFIX + Msg.ERROR + "No song to loop.");
                 return true;
             }
             radioSongPlayer.setRepeatMode(radioSongPlayer.getRepeatMode() == RepeatMode.ALL ? RepeatMode.NO : RepeatMode.ALL);
-            player.sendMessage("§aSet loop mode to " + radioSongPlayer.getRepeatMode().name());
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Set loop mode to " + Msg.VALUE + radioSongPlayer.getRepeatMode().name());
             return true;
         }
         if (args[0].equalsIgnoreCase("stop")) {
             if (radioSongPlayer == null) {
-                player.sendMessage("§cNo song to stop.");
+                player.sendMessage(PREFIX + Msg.ERROR + "No song to stop.");
                 return true;
             }
             radioSongPlayer.setPlaying(false);
             radioSongPlayer.destroy();
             radioSongPlayer.getPlayerUUIDs().forEach(radioSongPlayer::removePlayer);
-            player.sendMessage("§aStopped song.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Stopped song.");
             return true;
         }
         if (args[0].equalsIgnoreCase("add")) {
             if (args.length != 2) {
-                player.sendMessage("§cUsage: /music add <player>");
+                player.sendMessage(PREFIX + Msg.usage("/music add <player>"));
                 return true;
             }
             if (radioSongPlayer == null) {
-                player.sendMessage("§cNo song to add.");
+                player.sendMessage(PREFIX + Msg.ERROR + "No song to add.");
                 return true;
             }
             Player target = Bukkit.getPlayer(args[1]);
             if (target == null) {
-                player.sendMessage("§cPlayer not found.");
+                player.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
                 return true;
             }
             radioSongPlayer.addPlayer(target);
-            player.sendMessage("§aAdded " + target.getName() + " to song player.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Added " + Msg.VALUE + target.getName() + Msg.SUCCESS + " to song player.");
             return true;
         }
         if (args[0].equalsIgnoreCase("remove")) {
             if (args.length != 2) {
-                player.sendMessage("§cUsage: /music remove <player>");
+                player.sendMessage(PREFIX + Msg.usage("/music remove <player>"));
                 return true;
             }
             if (radioSongPlayer == null) {
-                player.sendMessage("§cNo song to remove.");
+                player.sendMessage(PREFIX + Msg.ERROR + "No song to remove.");
                 return true;
             }
             Player target = Bukkit.getPlayer(args[1]);
             if (target == null) {
-                player.sendMessage("§cPlayer not found.");
+                player.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
                 return true;
             }
             radioSongPlayer.removePlayer(target);
-            player.sendMessage("§aRemoved " + target.getName() + " from song player.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Removed " + Msg.VALUE + target.getName() + Msg.SUCCESS + " from song player.");
             return true;
         }
         if (args[0].equalsIgnoreCase("broadcast")) {
             broadcast = !broadcast;
-            player.sendMessage("§aBroadcast " + (broadcast ? "On" : "Off"));
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Broadcast " + Msg.VALUE + (broadcast ? "On" : "Off"));
         }
 
         return true;

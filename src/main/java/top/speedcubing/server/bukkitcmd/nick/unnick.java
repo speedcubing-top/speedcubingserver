@@ -23,13 +23,13 @@ public class unnick implements CommandExecutor {
         }
 
         if (strings.length != 0) {
-            commandSender.sendMessage("/unnick");
+            user.sendMessage("%lang_server_unnick_usage%");
             return true;
         }
 
         nick.nickPlayer(user.realName, Rank.getRank(user.realRank, User.getUser(commandSender).id), false, player, false);
         user.updateSkin(user.defaultSkin, user.realName);
-        commandSender.sendMessage("§aYou have unnicked successfully.");
+        user.sendMessage("%lang_server_unnick_success%");
         return true;
     }
 }
