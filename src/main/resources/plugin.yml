@@ -8,6 +8,8 @@ commands:
     usage: /resetpassword
   discord:
     usage: /discord
+  language:
+    usage: /language <id>
   cpsdisplay:
     usage: /cpsdisplay
   skin:

@@ -43,6 +43,7 @@ import top.speedcubing.lib.utils.UUIDUtils;
 import top.speedcubing.lib.utils.bytes.ByteArrayBuffer;
 import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.lib.utils.bytes.NumberConversion;
+import top.speedcubing.server.events.player.LanguageChangeEvent;
 import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.lang.LangInv;
 import top.speedcubing.server.lang.LangItem;
@@ -290,6 +291,16 @@ public class User extends JoinedPlayer {
 
     public void sendMessage(String unformatted, String... param) {
         sendMessage(Lang.of(unformatted, param));
+    }
+
+    /** Changes the language everywhere: this server, the database, the proxy (tablist, proxy messages) and the game plugins. */
+    public void setLanguage(int newLang) {
+        int oldLang = lang;
+        lang = newLang;
+        dbUpdate("lang=" + newLang);
+        writeToProxy(new ByteArrayBuffer().writeUTF("lang").writeInt(id).writeInt(newLang).toByteArray());
+        new LanguageChangeEvent(player, oldLang, newLang).call();
+        sendMessage("%lang_server_language_changed%");
     }
 
     public void sendMessage(Lang message, String... param) {
