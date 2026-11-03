@@ -20,7 +20,6 @@ import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.lib.utils.internet.HostAndPort;
 import top.speedcubing.server.authenticator.AuthenticatorCommand;
 import top.speedcubing.server.bukkitcmd.discord;
-import top.speedcubing.server.bukkitcmd.language;
 import top.speedcubing.server.bukkitcmd.getitemtype;
 import top.speedcubing.server.bukkitcmd.hub;
 import top.speedcubing.server.bukkitcmd.image;
@@ -201,7 +200,6 @@ public class speedcubingServer extends JavaPlugin {
         setExecutorSafe("ranks", new ranks());
         setExecutorSafe("status", new status());
         setExecutorSafe("cps", new cps(audiences));
-        setExecutorSafe("language", new language());
     }
 
     public static void registerListeners(Listener... listeners) {

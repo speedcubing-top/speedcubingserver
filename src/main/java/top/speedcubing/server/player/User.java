@@ -293,12 +293,17 @@ public class User extends JoinedPlayer {
         sendMessage(Lang.of(unformatted, param));
     }
 
-    /** Changes the language everywhere: this server, the database, the proxy (tablist, proxy messages) and the game plugins. */
+    /** Changes the language everywhere: the database, the proxy (tablist, proxy messages) and this server. */
     public void setLanguage(int newLang) {
-        int oldLang = lang;
-        lang = newLang;
         dbUpdate("lang=" + newLang);
         writeToProxy(new ByteArrayBuffer().writeUTF("lang").writeInt(id).writeInt(newLang).toByteArray());
+        applyLanguage(newLang);
+    }
+
+    /** Changes the language on this server only (the proxy's /language already saved it); main thread. */
+    public void applyLanguage(int newLang) {
+        int oldLang = lang;
+        lang = newLang;
         new LanguageChangeEvent(player, oldLang, newLang).call();
         sendMessage("%lang_server_language_changed%");
     }
