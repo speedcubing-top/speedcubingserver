@@ -94,6 +94,9 @@ public class User extends JoinedPlayer {
     public String status;
     public Skin defaultSkin;
     public boolean isCrashed;
+    // playersdata row as loaded at login; only use it for values that don't change during the session
+    public final SQLRow data;
+    private boolean nickState;
 
     public User(Player player, String displayRank, String displayName, Set<String> permissions, LoginContext ctx) {
         super(player.getUniqueId(), ctx.getRow().getString("name"), ctx.getRow().getInt("id"), ctx.getRow().getString("ip"), ctx.getRealRank(), displayRank, displayName, ctx.getRow());
@@ -110,6 +113,8 @@ public class User extends JoinedPlayer {
         if (ctx.getOnlinePlayerRow().getBoolean("velo_enabled")) {
             this.velocities = new double[]{ctx.getOnlinePlayerRow().getDouble("velo_hor"), ctx.getOnlinePlayerRow().getDouble("velo_ver")};
         }
+        this.data = ctx.getRow();
+        this.nickState = data.getBoolean("nicked");
 
         usersByID.put(id, this);
         usersByUUID.put(bGetUniqueId(), this);
@@ -120,7 +125,11 @@ public class User extends JoinedPlayer {
     }
 
     public boolean nickState() { //if player is switched to nick mode
-        return dbSelect("nicked").getBoolean(0);
+        return nickState;
+    }
+
+    public void setNickState(boolean nickState) {
+        this.nickState = nickState;
     }
 
     public Property getTextures() {
@@ -158,10 +167,6 @@ public class User extends JoinedPlayer {
         return UUID.fromString(UUIDUtils.dash(hex));
     }
 
-    //guild
-    public String getGuild() {
-        return dbSelect("guild").getString(0);
-    }
     //perm
 
     public boolean hasPermission(String perm) {
@@ -182,8 +187,20 @@ public class User extends JoinedPlayer {
 
 
     //RANK FORMAT
+    // realRank is already resolved at login (champ / period rank), so its format needs no lookup.
+    // Rank.getFormat queries periodrank, so the display (nick) format is resolved once per rank value
+    // instead of on every call (chat, nametags).
+    private String cachedDisplayRank;
+    private RankFormat cachedDisplayFormat;
+
     public RankFormat getFormat(boolean real) {
-        return Rank.getFormat(real ? realRank : displayRank, id);
+        if (real || displayRank.equals(realRank))
+            return Rank.rankByName.get(realRank).getFormat();
+        if (cachedDisplayFormat == null || !displayRank.equals(cachedDisplayRank)) {
+            cachedDisplayFormat = Rank.getFormat(displayRank, id);
+            cachedDisplayRank = displayRank;
+        }
+        return cachedDisplayFormat;
     }
 
     public String getPrefix(boolean real) {
@@ -307,16 +324,22 @@ public class User extends JoinedPlayer {
         playerConnection().sendPacket(new PacketPlayOutEntityVelocity(player.getEntityId(), v.getX(), v.getY(), v.getZ()));
     }
 
-    public String getGuildTag(boolean nick) {
+    private String guildTag; // raw tag of the player's guild ("" if none), loaded on first use
 
-        try (SQLConnection connection = Database.getCubing()) {
-            SQLResult result = connection.select("tag").from("guild").where("name='" + getGuild() + "'").executeResult();
-            if (!result.isEmpty()) {
-                String tag = result.getString();
-                return nick ? "" : (tag == null ? "" : " §6[" + tag + "]");
+    public String getGuildTag(boolean nick) {
+        if (guildTag == null) {
+            String guild = data.getString("guild");
+            String tag = null;
+            if (guild != null && !guild.isEmpty()) {
+                try (SQLConnection connection = Database.getCubing()) {
+                    SQLResult result = connection.select("tag").from("guild").where("name='" + guild + "'").executeResult();
+                    if (!result.isEmpty())
+                        tag = result.getString();
+                }
             }
-            return "";
+            guildTag = tag == null ? "" : tag;
         }
+        return nick || guildTag.isEmpty() ? "" : " §6[" + guildTag + "]";
     }
 
 

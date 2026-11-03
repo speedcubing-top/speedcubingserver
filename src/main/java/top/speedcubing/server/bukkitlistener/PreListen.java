@@ -216,7 +216,7 @@ public class PreListen implements Listener {
 
         //nick
         if (user.nicked())
-            user.sendPacket(new OutScoreboardTeam().a(Rank.getCode(user.realRank) + RankSystem.playerNameEncode(user.realName)).c(Rank.getFormat(user.realRank, user.id).getPrefix()).d(user.getGuildTag(true)).g(Collections.singletonList(user.realName)).h(0).packet);
+            user.sendPacket(new OutScoreboardTeam().a(Rank.getCode(user.realRank) + RankSystem.playerNameEncode(user.realName)).c(user.getFormat(true).getPrefix()).d(user.getGuildTag(true)).g(Collections.singletonList(user.realName)).h(0).packet);
 
         //vanish
         for (User u : User.getUsers()) {

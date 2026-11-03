@@ -234,6 +234,7 @@ public class nick implements CommandExecutor, Listener {
             connection.update("onlineplayer", "displayname='" + displayName + "',displayrank='" + displayRank + "'", "id=" + user.id);
             user.writeToProxy(new ByteArrayBuffer().writeUTF("nick").writeInt(user.id).writeUTF(displayRank).writeUTF(displayName).toByteArray());
         }
+        user.setNickState(nick);
 
         if (nick) {
             try (SQLConnection connection = Database.getSystem()) {

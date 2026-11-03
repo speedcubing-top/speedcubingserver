@@ -25,15 +25,7 @@ public class FMLHSListener implements PluginMessageListener {
 
         boolean store = false, punished = false;
         String name = null, a2, string;
-        Boolean bypass;
-
-        try (SQLConnection connection = Database.getCubing()) {
-            bypass = connection.select("modbypass")
-                    .from("playersdata")
-                    .where("id=" + User.getUser(player).id)
-                    .executeResult()
-                    .getBoolean();
-        }
+        boolean bypass = User.getUser(player).data.getBoolean("modbypass");
 
         for (int i = 2; i < bytes.length; store = !store) {
             int end = i + bytes[i] + 1;
