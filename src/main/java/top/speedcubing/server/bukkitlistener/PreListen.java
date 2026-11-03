@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import top.speedcubing.common.database.Database;
+import top.speedcubing.common.player.PlayerCache;
 import top.speedcubing.common.rank.PermissionSet;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.lib.bukkit.PlayerUtils;
@@ -111,33 +112,45 @@ public class PreListen implements Listener {
 
         // if loading the player fails, refuse the login: letting them in without a LoginContext leaves a player
         // with no User online, which breaks code that iterates all players (e.g. lobby join) until they leave
-        try (SQLConnection connection = Database.getCubing()) {
-            SQLRow row = connection.prepare("SELECT * FROM playersdata WHERE uuid=?")
-                    .setString(1, player.getUniqueId().toString())
-                    .executeResult().get(0);
+        try {
+            UUID uuid = player.getUniqueId();
+            SQLRow row;
+            SQLRow onlinePlayer;
+            Rank.Resolved rank;
 
-            int id = row.getInt("id");
-            Rank.Resolved rank = Rank.resolve(row.getString("priority"), id);
-            String realRank = rank.rank();
-
-            SQLResult onlinePlayer = connection.prepare("SELECT * FROM onlineplayer WHERE id=?")
-                    .setInt(1, id)
-                    .executeResult();
-
-            if (onlinePlayer.isEmpty()) {
-                e.setKickMessage("[System] error (2)");
-                e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
-                return;
+            // session cache written by the proxy at login; MySQL only on a miss
+            PlayerCache.Entry cached = PlayerCache.get(uuid);
+            if (cached != null) {
+                row = cached.data();
+                onlinePlayer = cached.onlinePlayer();
+                rank = cached.rank();
+            } else {
+                try (SQLConnection connection = Database.getCubing()) {
+                    row = connection.prepare("SELECT * FROM playersdata WHERE uuid=?")
+                            .setString(1, uuid.toString())
+                            .executeResult().get(0);
+                    rank = Rank.resolve(row.getString("priority"), row.getInt("id"));
+                    SQLResult onlinePlayers = connection.prepare("SELECT * FROM onlineplayer WHERE id=?")
+                            .setInt(1, row.getInt("id"))
+                            .executeResult();
+                    if (onlinePlayers.isEmpty()) {
+                        e.setKickMessage("[System] error (2)");
+                        e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
+                        return;
+                    }
+                    onlinePlayer = onlinePlayers.get(0);
+                }
+                PlayerCache.put(uuid, row, onlinePlayer, rank);
             }
 
             // maintenance
-            if (!Rank.isStaff(realRank) && Bukkit.hasWhitelist() && (row.getBoolean("serverwhitelist"))) {
+            if (!Rank.isStaff(rank.rank()) && Bukkit.hasWhitelist() && (row.getBoolean("serverwhitelist"))) {
                 e.setKickMessage("§cThis server is currently under maintenance.");
                 e.setResult(PlayerLoginEvent.Result.KICK_OTHER);
                 return;
             }
 
-            ctxMap.put(player.getUniqueId(), new LoginContext(row, onlinePlayer.get(0), rank));
+            ctxMap.put(uuid, new LoginContext(row, onlinePlayer, rank));
         } catch (Exception ex) {
             ex.printStackTrace();
             e.setKickMessage("[System] error (5), please rejoin");

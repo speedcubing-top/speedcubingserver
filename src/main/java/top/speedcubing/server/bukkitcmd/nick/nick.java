@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import top.speedcubing.common.database.Database;
+import top.speedcubing.common.player.PlayerCache;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.lib.api.MojangAPI;
 import top.speedcubing.lib.api.mojang.ProfileSkin;
@@ -232,6 +233,7 @@ public class nick implements CommandExecutor, Listener {
         try (SQLConnection connection = Database.getCubing()) {
             user.dbUpdate("nicked=" + (nick ? 1 : 0) + (nick ? ",nickname='" + displayName + "',nickpriority='" + displayRank + "'" : ""));
             connection.update("onlineplayer", "displayname='" + displayName + "',displayrank='" + displayRank + "'", "id=" + user.id);
+            PlayerCache.invalidate(user.uuid);
             user.writeToProxy(new ByteArrayBuffer().writeUTF("nick").writeInt(user.id).writeUTF(displayRank).writeUTF(displayName).toByteArray());
         }
         user.setNickState(nick);
