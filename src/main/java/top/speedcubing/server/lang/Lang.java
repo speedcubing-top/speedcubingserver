@@ -1,5 +1,6 @@
 package top.speedcubing.server.lang;
 
+import com.google.gson.JsonObject;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -52,11 +53,21 @@ public class Lang {
 
     public ComponentText getComponent(int lang) {
         Matcher matcher = pattern.matcher(unformatted.serialize());
-        String result = matcher.replaceAll(r -> LanguageSystem.lang[lang].get(matcher.group(1)).getAsString());
+        String result = matcher.replaceAll(r -> Matcher.quoteReplacement(lookup(lang, r.group(1))));
         for (String string : param) {
             result = result.replaceFirst("%p%", Matcher.quoteReplacement(string));
         }
         return ComponentText.unSerialize(result);
+    }
+
+    // missing keys (e.g. plugins deployed before /storage/lang was updated) fall back to English, then the raw key
+    private static String lookup(int lang, String key) {
+        JsonObject[] files = LanguageSystem.lang;
+        if (files[lang] != null && files[lang].has(key))
+            return files[lang].get(key).getAsString();
+        if (files[1] != null && files[1].has(key))
+            return files[1].get(key).getAsString();
+        return "%lang_" + key + "%";
     }
 
     public Lang clone() {
