@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.player.PlayerCache;
+import top.speedcubing.common.profiler.Profiler;
 import top.speedcubing.common.rank.PermissionSet;
 import top.speedcubing.common.rank.Rank;
 import top.speedcubing.lib.bukkit.PlayerUtils;
@@ -108,6 +109,12 @@ public class PreListen implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void PlayerLoginEvent(PlayerLoginEvent e) {
+        try (Profiler.Timer t = Profiler.timer("login.server.login")) {
+            login(e);
+        }
+    }
+
+    private void login(PlayerLoginEvent e) {
         Player player = e.getPlayer();
 
         // if loading the player fails, refuse the login: letting them in without a LoginContext leaves a player
@@ -162,6 +169,12 @@ public class PreListen implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void PlayerJoinEvent(PlayerJoinEvent e) {
+        try (Profiler.Timer t = Profiler.timer("login.server.join")) {
+            join(e);
+        }
+    }
+
+    private void join(PlayerJoinEvent e) {
         e.setJoinMessage("");
         Player player = e.getPlayer();
 

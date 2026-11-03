@@ -27,6 +27,7 @@ import top.speedcubing.common.database.Database;
 import top.speedcubing.common.player.JoinedPlayer;
 import top.speedcubing.common.rank.PermissionSet;
 import top.speedcubing.common.rank.Rank;
+import top.speedcubing.common.profiler.Profiler;
 import top.speedcubing.common.rank.RankFormat;
 import top.speedcubing.common.server.MinecraftProxy;
 import top.speedcubing.lib.api.mojang.Skin;
@@ -373,7 +374,7 @@ public class User extends JoinedPlayer {
      */
     public void recalculateRank() {
         speedcubingServer.scheduledPool.execute(() -> {
-            try {
+            try (Profiler.Timer t = Profiler.timer("rank.recalc.server")) {
                 SQLRow r = dbSelect("priority,perms");
                 Rank.Resolved resolved = Rank.resolve(r.getString("priority"), id);
                 Set<String> perms = Sets.newHashSet(r.getString("perms").split("\\|"));
