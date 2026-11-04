@@ -168,6 +168,13 @@ public class PreListen implements Listener {
 
     Map<UUID, LoginContext> ctxMap = new HashMap<>();
 
+    // a later listener (whitelist, full server, other plugins) can still refuse the login; join never runs then
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void PlayerLoginEventMonitor(PlayerLoginEvent e) {
+        if (e.getResult() != PlayerLoginEvent.Result.ALLOWED)
+            ctxMap.remove(e.getPlayer().getUniqueId());
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void PlayerJoinEvent(PlayerJoinEvent e) {
         try (Profiler.Timer t = Profiler.timer("login.server.join")) {
