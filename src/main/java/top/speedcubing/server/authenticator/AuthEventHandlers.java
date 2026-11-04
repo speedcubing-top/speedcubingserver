@@ -20,6 +20,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.Prefix;
+import top.speedcubing.server.utils.CommandParser;
 import top.speedcubing.common.text.Msg;
 
 public class AuthEventHandlers implements Listener {
@@ -118,7 +119,9 @@ public class AuthEventHandlers implements Listener {
         if (auth.allowAction())
             return;
 
-        if (!e.getMessage().contains("2fa")) {
+        // only /2fa itself (also as plugin:2fa); contains("2fa") let "/op Me 2fa" through
+        String command = CommandParser.parse(e.getMessage()).command;
+        if (!command.substring(command.indexOf(':') + 1).equalsIgnoreCase("2fa")) {
             e.setCancelled(true);
             if (auth.hasKey()) {
                 AuthMessenger.sendEnterCodeMessage(e.getPlayer());
