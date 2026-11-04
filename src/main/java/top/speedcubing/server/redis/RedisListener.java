@@ -64,8 +64,12 @@ public class RedisListener {
             int id = Integer.parseInt(rawMessage);
             if (id == 0)
                 User.getUsers().forEach(a -> a.sendPacket(packet));
-            else
-                User.getUser(id).sendPacket(packet);
+            else {
+                // target may have left or be on another server; throwing here would drop the subscriber
+                User user = User.getUser(id);
+                if (user != null)
+                    user.sendPacket(packet);
+            }
         });
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":crash", rawMessage -> {
             int id = Integer.parseInt(rawMessage);
@@ -73,6 +77,8 @@ public class RedisListener {
                 Bukkit.getOnlinePlayers().forEach(PlayerUtils::crashAll);
             else {
                 User user = User.getUser(id);
+                if (user == null)
+                    return;
                 PlayerUtils.crashAll(user.player);
                 user.isCrashed = true;
             }
