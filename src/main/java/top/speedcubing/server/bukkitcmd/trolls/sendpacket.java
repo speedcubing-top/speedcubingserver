@@ -30,10 +30,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import top.speedcubing.common.text.Msg;
-import top.speedcubing.server.utils.Prefix;
 
 public class sendpacket implements CommandExecutor, Listener {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
     public final static Set<Player> whoWasFucked = Collections.newSetFromMap(new WeakHashMap<>());
 
     @Override

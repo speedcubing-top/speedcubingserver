@@ -9,10 +9,9 @@ import org.bukkit.util.Vector;
 import top.speedcubing.common.text.Msg;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.system.command.CubingCommand;
-import top.speedcubing.server.utils.Prefix;
 
 public class testkb extends CubingCommand {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
 
     public testkb() {
         super("testkb");

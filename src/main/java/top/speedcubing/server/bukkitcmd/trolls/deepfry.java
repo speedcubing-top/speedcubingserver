@@ -11,10 +11,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.speedcubing.common.text.Msg;
-import top.speedcubing.server.utils.Prefix;
 
 public class deepfry implements CommandExecutor {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {

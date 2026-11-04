@@ -14,7 +14,6 @@ public final class Prefix {
     public static final String STATUS = Msg.prefix("Status", 'b');
     public static final String ACCOUNT = Msg.prefix("Account", '6');
     public static final String IMAGE = Msg.prefix("Image", 'd');
-    public static final String STAFF = Msg.prefix("Staff", 'c');
     public static final String MUSIC = Msg.prefix("Music", 'd');
     public static final String CPS = Msg.prefix("CPS", 'c');
     public static final String CHAT_LOG = Msg.prefix("ChatLog", 'a');

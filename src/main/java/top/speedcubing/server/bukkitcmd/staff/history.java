@@ -16,7 +16,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.text.Msg;
-import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.common.utils.CubingTimeFormat;
 import top.speedcubing.lib.bukkit.inventory.ItemBuilder;
 import top.speedcubing.lib.minecraft.text.ComponentText;
@@ -29,7 +28,7 @@ import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.server.player.User;
 
 public class history implements CommandExecutor, Listener {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
     List<Inventory> banList = new ArrayList<>();
     List<Inventory> muteList = new ArrayList<>();
 

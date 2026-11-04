@@ -9,7 +9,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.text.Msg;
-import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.common.utils.CubingTimeFormat;
 import top.speedcubing.lib.bukkit.inventory.InventoryBuilder;
 import top.speedcubing.lib.bukkit.inventory.ItemBuilder;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 public class nicklogs extends CubingCommand implements Listener {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
 
     public nicklogs() {
         super("nicklogs");

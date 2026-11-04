@@ -7,10 +7,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.text.Msg;
 import top.speedcubing.server.system.command.CubingCommand;
-import top.speedcubing.server.utils.Prefix;
 
 public class heal extends CubingCommand {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
 
     public heal() {
         super("heal");

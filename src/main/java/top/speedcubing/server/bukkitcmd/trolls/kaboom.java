@@ -9,10 +9,9 @@ import top.speedcubing.common.text.Msg;
 import top.speedcubing.lib.minecraft.MinecraftConsole;
 import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.player.User;
-import top.speedcubing.server.utils.Prefix;
 
 public class kaboom implements CommandExecutor {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {

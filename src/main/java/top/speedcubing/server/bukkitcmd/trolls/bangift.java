@@ -8,7 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import top.speedcubing.common.text.Msg;
-import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.lib.bukkit.inventory.BookBuilder;
 import top.speedcubing.lib.minecraft.text.ComponentText;
 import top.speedcubing.lib.minecraft.text.TextClickEvent;
@@ -18,7 +17,7 @@ import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.player.User;
 
 public class bangift implements CommandExecutor {
-    private static final String PREFIX = Prefix.STAFF;
+    private static final String PREFIX = Msg.STAFF;
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
