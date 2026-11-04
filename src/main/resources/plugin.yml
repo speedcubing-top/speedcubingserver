@@ -2,10 +2,6 @@ name: speedcubingServer
 main: top.speedcubing.server.speedcubingServer
 version: 1.0
 commands:
-  premium:
-    usage: /premium
-  resetpassword:
-    usage: /resetpassword
   discord:
     usage: /discord
   cpsdisplay:
