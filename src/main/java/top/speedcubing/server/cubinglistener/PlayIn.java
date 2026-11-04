@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.PacketDataSerializer;
 import net.minecraft.server.v1_8_R3.PacketPlayInCustomPayload;
+import net.minecraft.server.v1_8_R3.PacketPlayInFlying;
 import net.minecraft.server.v1_8_R3.PacketPlayInKeepAlive;
 import net.minecraft.server.v1_8_R3.PacketPlayInTabComplete;
 import net.minecraft.server.v1_8_R3.PacketPlayInUpdateSign;
@@ -12,6 +13,7 @@ import org.bukkit.Bukkit;
 import top.speedcubing.lib.bukkit.events.packet.PlayInEvent;
 import top.speedcubing.lib.eventbus.CubingEventHandler;
 import top.speedcubing.server.bukkitcmd.nick.nick;
+import top.speedcubing.server.events.player.PlayerClientTickEvent;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.CommandParser;
@@ -25,7 +27,7 @@ public class PlayIn {
             return;
         }
         if (User.getUser(e.getPlayer()).isCrashed) {
-            if (!(e.getPacket() instanceof PacketPlayInKeepAlive || !(e.getPacket() instanceof PacketPlayInCustomPayload))) {
+            if (!(e.getPacket() instanceof PacketPlayInKeepAlive || e.getPacket() instanceof PacketPlayInCustomPayload)) {
                 e.setCancelled(true);
             }
         }
@@ -34,7 +36,7 @@ public class PlayIn {
             CommandParser command = CommandParser.parse(s);
             User user = User.getUser(e.getPlayer());
             user.lastTabbed = command.command;
-            if (!user.hasPermission("cmd." + command) && !user.hasPermission("cmd.*")) {
+            if (!user.hasPermission("cmd." + command.command) && !user.hasPermission("cmd.*")) {
                 e.setCancelled(true);
             }
         } else if (e.getPacket() instanceof PacketPlayInCustomPayload packet) {
@@ -68,6 +70,8 @@ public class PlayIn {
                     }
                 });
             }
+        } else if (e.getPacket() instanceof PacketPlayInFlying packet) {
+            new PlayerClientTickEvent(e.getPlayer(), packet).call();
         }
     }
 }
