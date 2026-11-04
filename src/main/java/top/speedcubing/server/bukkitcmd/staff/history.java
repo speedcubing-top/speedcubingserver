@@ -146,9 +146,8 @@ public class history implements CommandExecutor, Listener {
 
     private boolean openHistoryGui(Player sender, String name) {
         try (SQLConnection connection = Database.getCubing()) {
-            SQLResult result = connection.select("name,profile_textures_value,uuid")
-                    .from("playersdata")
-                    .where("name='" + name + "'")
+            SQLResult result = connection.prepare("SELECT name,profile_textures_value,uuid FROM playersdata WHERE name=?")
+                    .setString(1, name)
                     .executeResult();
             if (result.isEmpty())
                 return false;
