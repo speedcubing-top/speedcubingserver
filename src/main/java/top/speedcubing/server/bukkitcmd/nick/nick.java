@@ -2,6 +2,7 @@ package top.speedcubing.server.bukkitcmd.nick;
 
 import edu.mit.jwi.item.IIndexWord;
 import edu.mit.jwi.item.POS;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -61,12 +62,14 @@ public class nick implements CommandExecutor, Listener {
         if (!((NickEvent) new NickEvent((Player) commandSender).call()).isCancelled()) {
             Player player = (Player) commandSender;
             if (strings.length == 1) {
-                if (strings[0].equalsIgnoreCase("nickeula") && settingNick.get(player.getUniqueId())) {
+                // only players inside the /nick book flow may use the book's sub-commands; absent entry = not in the flow
+                boolean inNickFlow = Boolean.TRUE.equals(settingNick.get(player.getUniqueId()));
+                if (strings[0].equalsIgnoreCase("nickeula") && inNickFlow) {
                     return true;
-                } else if (strings[0].equalsIgnoreCase("nickrank") && settingNick.get(player.getUniqueId())) {
+                } else if (strings[0].equalsIgnoreCase("nickrank") && inNickFlow) {
                     openNickBook(player, NickBook.RANK);
                     return true;
-                } else if (strings[0].contains("nickskin") && settingNick.get(player.getUniqueId())) {
+                } else if (strings[0].contains("nickskin") && inNickFlow) {
                     String rank = strings[0].substring(strings[0].indexOf("nickskin") + "nickskin".length());
                     if (!canNickAs(User.getUser(player), rank)) {
                         User.getUser(player).sendMessage("%lang_server_nick_rank_not_allowed%");
@@ -76,7 +79,7 @@ public class nick implements CommandExecutor, Listener {
                     nickRank.put(player.getUniqueId(), rank);
                     openNickBook(player, NickBook.SKIN);
                     return true;
-                } else if (strings[0].contains("nicknamechoose") && settingNick.get(player.getUniqueId())) {
+                } else if (strings[0].contains("nicknamechoose") && inNickFlow) {
                     switch (strings[0]) {
                         case "nicknamechoosemyskin":
                             player.performCommand("skin " + User.getUser(player).realName);
@@ -98,13 +101,13 @@ public class nick implements CommandExecutor, Listener {
                     }
                     openNickBook(player, NickBook.NAMECHOOSE);
                     return true;
-                } else if (strings[0].equalsIgnoreCase("nicknamecustom") && settingNick.get(player.getUniqueId())) {
+                } else if (strings[0].equalsIgnoreCase("nicknamecustom") && inNickFlow) {
                     openNickBook(player, NickBook.NAMECUSTOM);
                     return true;
-                } else if (strings[0].equalsIgnoreCase("nicknamerandom") && settingNick.get(player.getUniqueId())) {
+                } else if (strings[0].equalsIgnoreCase("nicknamerandom") && inNickFlow) {
                     openNickBook(player, NickBook.NAMERANDOM);
                     return true;
-                } else if (strings[0].equalsIgnoreCase("nickrule") && settingNick.get(player.getUniqueId())) {
+                } else if (strings[0].equalsIgnoreCase("nickrule") && inNickFlow) {
                     openNickBook(player, NickBook.RULE);
                     return true;
                 } else if (strings[0].equalsIgnoreCase("reuse")) {
@@ -326,18 +329,25 @@ public class nick implements CommandExecutor, Listener {
             case NAMERANDOM:
                 User.getUser(player).sendMessage("%lang_server_nick_generating%");
                 speedcubingServer.scheduledPool.execute(() -> {
+                    // WordNet lookup stays off the main thread; the book, maps and User lookups go back to it
                     String name = generateRandomString();
-                    nickName.put(player.getUniqueId(), name);
-                    ComponentText randomPage = new ComponentText().str(t(lang, "server_nick_book_random", name) + "\n\n")
-                            .both("   §a§n" + t(lang, "server_nick_book_random_use") + "§r\n", TextClickEvent.runCommand("/nick " + name + " " + nickRank.get(player.getUniqueId()) + " true"),
-                                    TextHoverEvent.showText(t(lang, "server_nick_book_random_use_hover")))
-                            .both("   §c§n" + t(lang, "server_nick_book_random_retry") + "§r\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText(t(lang, "server_nick_book_random_retry_hover")));
-                    if (User.getUser(player).hasPermission("perm.nick.customname"))
-                        randomPage.both("\n§0§n" + t(lang, "server_nick_book_random_custom"), TextClickEvent.runCommand("/nick nicknamecustom"), TextHoverEvent.showText(t(lang, "server_nick_book_random_custom_hover")));
-                    ItemStack b = new BookBuilder("random", "system")
-                            .addPage(randomPage.toBungee())
-                            .build();
-                    BookBuilder.openBook(b, player);
+                    Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {
+                        User randomUser = User.getUser(player);
+                        if (!player.isOnline() || randomUser == null) {
+                            return;
+                        }
+                        nickName.put(player.getUniqueId(), name);
+                        ComponentText randomPage = new ComponentText().str(t(lang, "server_nick_book_random", name) + "\n\n")
+                                .both("   §a§n" + t(lang, "server_nick_book_random_use") + "§r\n", TextClickEvent.runCommand("/nick " + name + " " + nickRank.get(player.getUniqueId()) + " true"),
+                                        TextHoverEvent.showText(t(lang, "server_nick_book_random_use_hover")))
+                                .both("   §c§n" + t(lang, "server_nick_book_random_retry") + "§r\n", TextClickEvent.runCommand("/nick nicknamerandom"), TextHoverEvent.showText(t(lang, "server_nick_book_random_retry_hover")));
+                        if (randomUser.hasPermission("perm.nick.customname"))
+                            randomPage.both("\n§0§n" + t(lang, "server_nick_book_random_custom"), TextClickEvent.runCommand("/nick nicknamecustom"), TextHoverEvent.showText(t(lang, "server_nick_book_random_custom_hover")));
+                        ItemStack b = new BookBuilder("random", "system")
+                                .addPage(randomPage.toBungee())
+                                .build();
+                        BookBuilder.openBook(b, player);
+                    });
                 });
                 break;
             case RULE:
