@@ -115,7 +115,7 @@ public class speedcubingServer extends JavaPlugin {
 
         new LogListener().reloadFilter();
 
-        if (!Configuration.removeLogs) {
+        if (Configuration.removeLogs) {
             for (File f : new File("logs").listFiles()) {
                 if (!f.getName().equals("latest.log"))
                     f.delete();
