@@ -34,6 +34,8 @@ public class cpsdisplay implements CommandExecutor {
         User user = User.getUser(player);
         if (user.cpsHologram != null) {
             user.removeCPSHologram();
+            // keep the in-memory status in sync, the quit handler writes it back to the DB
+            user.status = "null";
             user.dbUpdate("status=" + null);
             return;
         }
@@ -41,6 +43,7 @@ public class cpsdisplay implements CommandExecutor {
         h.follow(player, new Vector(0, 2.5, 0));
         h.spawn();
         user.cpsHologram = h;
+        user.status = "cps";
         user.dbUpdate("status='cps'");
     }
 }

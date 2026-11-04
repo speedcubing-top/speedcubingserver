@@ -22,7 +22,6 @@ public class bangift implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof Player player)) return true;
-        Player target = Bukkit.getPlayerExact(args[0]);
         if (args.length != 1) {
             player.sendMessage(PREFIX + Msg.usage("/bangift <player>"));
             return true;
@@ -32,6 +31,7 @@ public class bangift implements CommandExecutor {
             bangift.fakeBan(player);
             return true;
         }
+        Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
             player.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
             return true;
