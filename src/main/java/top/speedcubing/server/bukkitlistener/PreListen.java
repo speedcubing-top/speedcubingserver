@@ -207,7 +207,7 @@ public class PreListen implements Listener {
             displayName = ctx.getRow().getString("name");
         } else {
             if (nickState) {
-                displayRank = ctx.getRow().getString("nickpriority");
+                displayRank = Rank.nickRankOrDefault(ctx.getRow().getString("nickpriority"), ctx.getRealRank());
                 displayName = ctx.getRow().getString("nickname");
             }
             skinValue = ctx.getRow().getString("skinvalue");

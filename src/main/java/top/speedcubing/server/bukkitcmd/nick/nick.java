@@ -67,29 +67,13 @@ public class nick implements CommandExecutor, Listener {
                     openNickBook(player, NickBook.RANK);
                     return true;
                 } else if (strings[0].contains("nickskin") && settingNick.get(player.getUniqueId())) {
-                    switch (strings[0]) {
-                        case "nickskindefault":
-                            nickRank.put(player.getUniqueId(), "default");
-                            break;
-                        case "nickskinvip":
-                            nickRank.put(player.getUniqueId(), "vip");
-                            break;
-                        case "nickskinvipplus":
-                            nickRank.put(player.getUniqueId(), "vipplus");
-                            break;
-                        case "nickskinpremium":
-                            nickRank.put(player.getUniqueId(), "premium");
-                            break;
-                        case "nickskinpremiumplus":
-                            nickRank.put(player.getUniqueId(), "premiumplus");
-                            break;
-                        case "nickskinyt":
-                            nickRank.put(player.getUniqueId(), "yt");
-                            break;
-                        case "nickskinytplus":
-                            nickRank.put(player.getUniqueId(), "ytplus");
-                            break;
+                    String rank = strings[0].substring(strings[0].indexOf("nickskin") + "nickskin".length());
+                    if (!canNickAs(User.getUser(player), rank)) {
+                        User.getUser(player).sendMessage("%lang_server_nick_rank_not_allowed%");
+                        openNickBook(player, NickBook.RANK);
+                        return true;
                     }
+                    nickRank.put(player.getUniqueId(), rank);
                     openNickBook(player, NickBook.SKIN);
                     return true;
                 } else if (strings[0].contains("nicknamechoose") && settingNick.get(player.getUniqueId())) {
@@ -130,7 +114,7 @@ public class nick implements CommandExecutor, Listener {
                     } else if (result.getString(0).equals(commandSender.getName())) {
                         User.getUser(commandSender).sendMessage("%lang_nick_already%");
                     } else {
-                        nick.nickPlayer(result.getString(0), result.getString(1), true, (Player) commandSender, false);
+                        nick.nickPlayer(result.getString(0), allowedOrDefault(User.getUser(commandSender), result.getString(1)), true, (Player) commandSender, false);
                         User.getUser(commandSender).sendMessage("%lang_server_nick_reused%");
                     }
                     return true;
@@ -142,30 +126,33 @@ public class nick implements CommandExecutor, Listener {
                 else if (name.equals(user.realName))
                     user.sendMessage("%lang_nick_default%");
                 else
-                    nickCheck(user, name, user.player, user.dbSelect("nickpriority").getString(0), false);
+                    nickCheck(user, name, user.player, allowedOrDefault(user, user.dbSelect("nickpriority").getString(0)), false);
             } else if (strings.length == 2) {
                 User user = User.getUser(commandSender);
-                if (user.hasPermission("perm.nick.nickrank%")) {
-                    String name = strings[0];
-                    if (Rank.rankByName.containsKey(strings[1].toLowerCase())) {
-                        nickCheck(user, name, user.player, strings[1].toLowerCase(), false);
-                    } else
+                if (user.hasPermission("perm.nick.nickrank")) {
+                    String rank = strings[1].toLowerCase();
+                    if (!Rank.rankByName.containsKey(rank))
                         user.sendMessage("%lang_rank_unknown%");
+                    else if (!canNickAs(user, rank))
+                        user.sendMessage("%lang_server_nick_rank_not_allowed%");
+                    else
+                        nickCheck(user, strings[0], user.player, rank, false);
                 } else user.sendMessage("%lang_server_nick_usage%");
             } else if (strings.length == 3) {
+                // "/nick <name> <rank> true" is what the book's name pages run; the rank is client-supplied
                 User user = User.getUser(commandSender);
-                if (user.hasPermission("perm.nick.nickrank") || nickRank.get(player.getUniqueId()).equals("default")
-                        || nickRank.get(player.getUniqueId()).equals("vip") || nickRank.get(player.getUniqueId()).equals("vipplus")
-                        || nickRank.get(player.getUniqueId()).equals("premium") || nickRank.get(player.getUniqueId()).equals("premiumplus")) {
-                    String name = strings[0];
-                    if (Rank.rankByName.containsKey(strings[1].toLowerCase())) {
-                        nickCheck(user, name, user.player, strings[1].toLowerCase(), Boolean.parseBoolean(strings[2]));
-                        if (strings[2].equalsIgnoreCase("true")) {
-                            openNickBook(player, NickBook.RULE);
-                        }
-                    } else
-                        user.sendMessage("%lang_rank_unknown%");
-                } else user.sendMessage("%lang_server_nick_usage%");
+                String rank = strings[1].toLowerCase();
+                if (!Rank.rankByName.containsKey(rank))
+                    user.sendMessage("%lang_rank_unknown%");
+                else if (!canNickAs(user, rank))
+                    user.sendMessage("%lang_server_nick_rank_not_allowed%");
+                else {
+                    nickRank.put(player.getUniqueId(), rank);
+                    nickCheck(user, strings[0], user.player, rank, Boolean.parseBoolean(strings[2]));
+                    if (strings[2].equalsIgnoreCase("true")) {
+                        openNickBook(player, NickBook.RULE);
+                    }
+                }
             } else if (strings.length == 0) {
                 settingNick.put(player.getUniqueId(), true);
                 openNickBook(player, NickBook.EULA);
@@ -174,6 +161,21 @@ public class nick implements CommandExecutor, Listener {
         return true;
     }
 
+
+    // book options in display order; YT ranks are additionally limited to perm.nick.nickrank
+    private static final String[][] RANK_OPTIONS = {
+            {"§8DEFAULT", "default"}, {"§dVIP", "vip"}, {"§dVIP+", "vipplus"}, {"§6PREMIUM", "premium"},
+            {"§6PREMIUM+", "premiumplus"}, {"§5YT", "yt"}, {"§4YT+", "ytplus"}};
+
+    /** A nick may only show a rank at or below the player's own, so nobody can pose as staff or a higher rank. */
+    static boolean canNickAs(User user, String rank) {
+        return Rank.canDisplayAsNick(rank, user.realRank) && (!rank.startsWith("yt") || user.hasPermission("perm.nick.nickrank"));
+    }
+
+    /** Stored nick ranks may predate a rank change; anything no longer allowed falls back to default. */
+    private static String allowedOrDefault(User user, String rank) {
+        return canNickAs(user, rank) ? rank : "default";
+    }
 
     private void nickCheck(User user, String name, Player player, String rank, boolean openBook) {
         if (!user.hasPermission("perm.nick.customname") && !settingNick.containsKey(user.bGetUniqueId())) {
@@ -276,14 +278,10 @@ public class nick implements CommandExecutor, Listener {
                 break;
             case RANK:
                 ComponentText rankPage = new ComponentText().str(t(lang, "server_nick_book_rank") + "\n\n");
-                rankOption(rankPage, lang, "§8DEFAULT", "default");
-                rankOption(rankPage, lang, "§dVIP", "vip");
-                rankOption(rankPage, lang, "§dVIP+", "vipplus");
-                rankOption(rankPage, lang, "§6PREMIUM", "premium");
-                rankOption(rankPage, lang, "§6PREMIUM+", "premiumplus");
-                if (User.getUser(player).hasPermission("perm.nick.nickrank")) {
-                    rankOption(rankPage, lang, "§5YT", "yt");
-                    rankOption(rankPage, lang, "§4YT+", "ytplus");
+                User bookUser = User.getUser(player);
+                for (String[] option : RANK_OPTIONS) {
+                    if (canNickAs(bookUser, option[1]))
+                        rankOption(rankPage, lang, option[0], option[1]);
                 }
                 book = new BookBuilder("rank", "system")
                         .addPage(rankPage.toBungee())
