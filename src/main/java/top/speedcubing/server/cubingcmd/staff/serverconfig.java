@@ -6,7 +6,7 @@ import top.speedcubing.server.system.command.CubingCommand;
 
 public class serverconfig extends CubingCommand {
     public serverconfig() {
-        super("announce");
+        super("serverconfig");
     }
 
     @Override
