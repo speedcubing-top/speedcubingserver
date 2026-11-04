@@ -48,19 +48,26 @@ public class image implements CommandExecutor {
         new BukkitRunnable() {
             @Override
             public void run() {
-                MapView view = Bukkit.createMap(player.getWorld());
-                view.getRenderers().forEach(view::removeRenderer);
+                // only the download runs async; the map and inventory are Bukkit API and go back to the main thread
+                ImageRenderer renderer;
                 try {
-                    ImageRenderer renderer = new ImageRenderer(url);
+                    renderer = new ImageRenderer(url);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> sender.sendMessage(Prefix.IMAGE + Msg.ERROR + "Could not load the image. Is the URL correct?"));
+                    return;
+                }
+                Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {
+                    if (!player.isOnline())
+                        return;
+                    MapView view = Bukkit.createMap(player.getWorld());
+                    view.getRenderers().forEach(view::removeRenderer);
                     view.addRenderer(renderer);
                     ItemStack mapItem = new ItemStack(Material.MAP, 1, view.getId());
                     ItemMeta mapMeta = mapItem.getItemMeta();
                     mapItem.setItemMeta(mapMeta);
                     player.getInventory().addItem(mapItem);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    sender.sendMessage(Prefix.IMAGE + Msg.ERROR + "Could not load the image. Is the URL correct?");
-                }
+                });
             }
         }.runTaskAsynchronously(speedcubingServer.instance);
     }
