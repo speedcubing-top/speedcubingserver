@@ -53,15 +53,28 @@ public class AuthEventHandlers implements Listener {
                 auth.noKey = AuthUtils.generateSecret();
                 AuthMessenger.sendSetKeyMessage(p);
             }
+            String url = qrCodeURL.replace("%label", "speedcubing.top:%20" + user.bGetName())
+                    .replace("%key", auth.noKey);
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    String url = qrCodeURL.replace("%label", "speedcubing.top:%20" + user.bGetName())
-                            .replace("%key", auth.noKey);
-                    MapView view = Bukkit.createMap(p.getWorld());
-                    view.getRenderers().forEach(view::removeRenderer);
+                    // only the QR download runs async; the map and inventory are Bukkit API and go back to the main thread
+                    ImageRenderer renderer;
                     try {
-                        ImageRenderer renderer = new ImageRenderer(url);
+                        renderer = new ImageRenderer(url);
+                    } catch (IOException ee) {
+                        ee.printStackTrace();
+                        Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {
+                            if (p.isOnline())
+                                user.sendMessage("%lang_server_2fa_qr_error%");
+                        });
+                        return;
+                    }
+                    Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {
+                        if (!p.isOnline())
+                            return;
+                        MapView view = Bukkit.createMap(p.getWorld());
+                        view.getRenderers().forEach(view::removeRenderer);
                         view.addRenderer(renderer);
                         ItemStack mapItem = new ItemStack(Material.MAP, 1, view.getId());
                         ItemMeta mapMeta = mapItem.getItemMeta();
@@ -69,10 +82,7 @@ public class AuthEventHandlers implements Listener {
                         mapItem.setItemMeta(mapMeta);
                         p.getInventory().addItem(mapItem);
                         user.sendMessage("%lang_server_2fa_qr_url%", url);
-                    } catch (IOException ee) {
-                        ee.printStackTrace();
-                        user.sendMessage("%lang_server_2fa_qr_error%");
-                    }
+                    });
                 }
             }.runTaskAsynchronously(speedcubingServer.instance);
         }

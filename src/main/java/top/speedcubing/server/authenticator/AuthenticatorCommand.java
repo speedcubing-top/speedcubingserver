@@ -10,7 +10,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.database.Database;
+import top.speedcubing.common.player.PlayerCache;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
+import top.speedcubing.lib.utils.SQL.SQLRow;
 import top.speedcubing.lib.utils.StringUtils;
 import top.speedcubing.server.mulitproxy.BungeeProxy;
 import top.speedcubing.server.player.User;
@@ -40,6 +42,11 @@ public class AuthenticatorCommand implements CommandExecutor {
             Player player = (Player) sender;
 
             AuthData auth = AuthData.map.get(User.getUser(player));
+            if (auth == null) {
+                // no AuthData: 2FA bypassed or not enabled for this account
+                User.getUser(player).sendMessage("%lang_server_2fa_disabled%");
+                return true;
+            }
 
             String code = args[0];
             if (StringUtils.isInt(code)) {
@@ -86,6 +93,10 @@ public class AuthenticatorCommand implements CommandExecutor {
             if (args[0].equalsIgnoreCase("setup")) {
                 Player player = (Player) sender;
                 AuthData auth = AuthData.map.get(User.getUser(player));
+                if (auth == null) {
+                    User.getUser(player).sendMessage("%lang_server_2fa_disabled%");
+                    return true;
+                }
 
                 if (auth.isAuthEnable()) {
                     if (!auth.hasKey()) {
@@ -126,8 +137,16 @@ public class AuthenticatorCommand implements CommandExecutor {
                         sender.sendMessage(Prefix.TWO_FA + Msg.PLAYER_NOT_FOUND);
                         return true;
                     }
-                    int id = connection.select("id").from("playersdata").where("name='" + targetName + "'").executeResult().getInt();
-                    AuthData.map.get(User.getUser(id)).setSession(false);
+                    SQLRow target = connection.select("id,uuid").from("playersdata").where("name='" + targetName + "'").executeResult().get(0);
+                    User targetUser = User.getUser(target.getInt(0));
+                    AuthData targetAuth = targetUser == null ? null : AuthData.map.get(targetUser);
+                    if (targetAuth != null) {
+                        targetAuth.setSession(false);
+                    } else {
+                        // offline, on another server or without 2FA data here: clear the stored sessions directly
+                        connection.update("playersdata", "auth_sessions=0", "id=" + target.getInt(0));
+                        PlayerCache.invalidateForUpdate(UUID.fromString(target.getString(1)), "auth_sessions=0");
+                    }
                     sender.sendMessage(Prefix.TWO_FA + Msg.SUCCESS + "Reset trusted sessions of " + Msg.VALUE + realTargetName + Msg.SUCCESS + ".");
                 }
             }
