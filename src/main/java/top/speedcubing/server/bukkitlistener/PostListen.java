@@ -7,19 +7,44 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import top.speedcubing.lib.utils.ReflectionUtils;
 import top.speedcubing.server.authenticator.AuthData;
 import top.speedcubing.server.authenticator.AuthEventHandlers;
 import top.speedcubing.server.bukkitcmd.nick.nick;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
+import top.speedcubing.server.utils.StatsBossBar;
 
 public class PostListen implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void PlayerMoveEvent(PlayerMoveEvent e) {
-        User.getUser(e.getPlayer()).lastMove = System.currentTimeMillis();
+        User user = User.getUser(e.getPlayer());
+        user.lastMove = System.currentTimeMillis();
+        StatsBossBar statsBar = user.statsBar;
+        if (statsBar != null)
+            statsBar.follow();
         //Auth
         AuthEventHandlers.onPlayerMove(e);
+    }
+
+    // the client drops the bar's wither on these; the next CubingTick spawns it again
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void PlayerTeleportEvent(PlayerTeleportEvent e) {
+        invalidateStatsBar(e.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void PlayerRespawnEvent(PlayerRespawnEvent e) {
+        invalidateStatsBar(e.getPlayer());
+    }
+
+    private static void invalidateStatsBar(Player player) {
+        User user = User.getUser(player);
+        StatsBossBar statsBar = user == null ? null : user.statsBar;
+        if (statsBar != null)
+            statsBar.invalidate();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

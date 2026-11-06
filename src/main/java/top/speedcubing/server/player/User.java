@@ -50,6 +50,7 @@ import top.speedcubing.server.lang.LangItem;
 import top.speedcubing.server.login.LoginContext;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.RankSystem;
+import top.speedcubing.server.utils.StatsBossBar;
 
 import java.time.DateTimeException;
 import java.time.ZoneId;
@@ -98,7 +99,8 @@ public class User extends JoinedPlayer {
     public Queue<Integer> leftClickQueue = new ArrayDeque<>(), rightClickQueue = new ArrayDeque<>();
     public int leftCPS, rightCPS, leftClickTick, rightClickTick;
     public boolean vanished;
-    public boolean tpsBar, ramBar; // session-only action bar readouts, toggled by /tpsbar and /rambar
+    public boolean tpsBar, ramBar; // session-only boss bar readouts, toggled by /tpsbar and /rambar
+    public volatile StatsBossBar statsBar;
     public long lastInvClick;
     public long lastMove = System.currentTimeMillis();
     public String status;
@@ -292,6 +294,16 @@ public class User extends JoinedPlayer {
 
     public void sendMessage(String unformatted, String... param) {
         sendMessage(Lang.of(unformatted, param));
+    }
+
+    /** Creates or removes the stats boss bar after /tpsbar or /rambar; main thread. */
+    public void refreshStatsBar() {
+        if ((tpsBar || ramBar) && statsBar == null) {
+            statsBar = new StatsBossBar(player);
+        } else if (!tpsBar && !ramBar && statsBar != null) {
+            statsBar.remove();
+            statsBar = null;
+        }
     }
 
     /** Changes the language everywhere: the database, the proxy (tablist, proxy messages) and this server. */

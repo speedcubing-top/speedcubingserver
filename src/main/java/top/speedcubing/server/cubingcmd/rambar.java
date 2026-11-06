@@ -19,6 +19,7 @@ public class rambar extends CubingCommand {
         }
         User user = User.getUser(player);
         user.ramBar = !user.ramBar;
+        user.refreshStatsBar();
         sender.sendMessage(Msg.SYSTEM + Msg.INFO + "RAM bar " + (user.ramBar ? Msg.SUCCESS + "enabled" : Msg.ERROR + "disabled") + Msg.INFO + ".");
     }
 }

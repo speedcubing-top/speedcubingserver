@@ -19,6 +19,7 @@ public class tpsbar extends CubingCommand {
         }
         User user = User.getUser(player);
         user.tpsBar = !user.tpsBar;
+        user.refreshStatsBar();
         sender.sendMessage(Msg.SYSTEM + Msg.INFO + "TPS bar " + (user.tpsBar ? Msg.SUCCESS + "enabled" : Msg.ERROR + "disabled") + Msg.INFO + ".");
     }
 }

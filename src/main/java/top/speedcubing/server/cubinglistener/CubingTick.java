@@ -15,6 +15,7 @@ import top.speedcubing.lib.eventbus.CubingEventHandler;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.utils.CPSMonitor;
 import top.speedcubing.server.utils.ServerStats;
+import top.speedcubing.server.utils.StatsBossBar;
 
 public class CubingTick {
     private static final String CPS_PREFIX = Prefix.CPS;
@@ -53,12 +54,17 @@ public class CubingTick {
             } else if (nicked) {
                 actionBar = Lang.of(lobby ? "%lang_server_actionbar_nicked_lobby%" : "%lang_server_actionbar_nicked%").getString(user.lang);
             }
-            if (user.tpsBar)
-                actionBar = (actionBar == null ? "" : actionBar + " §8| ") + ServerStats.tpsLine(((CraftPlayer) user.player).getHandle().ping);
-            if (user.ramBar)
-                actionBar = (actionBar == null ? "" : actionBar + " §8| ") + ServerStats.ramLine();
             if (actionBar != null)
                 PlayerUtils.sendActionBar(user.player, actionBar);
+
+            StatsBossBar statsBar = user.statsBar;
+            if (statsBar != null) {
+                String tps = user.tpsBar ? ServerStats.tpsLine(((CraftPlayer) user.player).getHandle().ping) : null;
+                String ram = user.ramBar ? ServerStats.ramLine() : null;
+                String text = tps == null ? ram : ram == null ? tps : tps + " §8| " + ram;
+                if (text != null) // both toggled off since the read above; the command is removing the bar
+                    statsBar.setText(text);
+            }
 
             //limbo
             if (!Bukkit.getServerName().equals("limbo"))
