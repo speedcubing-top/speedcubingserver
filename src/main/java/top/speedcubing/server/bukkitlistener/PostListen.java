@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -18,6 +19,16 @@ import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.StatsBossBar;
 
 public class PostListen implements Listener {
+    // /god: cancel last so game plugins can't re-enable the damage (cancelling it also drops the knockback)
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void EntityDamageEvent(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Player player) {
+            User user = User.getUser(player);
+            if (user != null && user.god)
+                e.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void PlayerMoveEvent(PlayerMoveEvent e) {
         User user = User.getUser(e.getPlayer());

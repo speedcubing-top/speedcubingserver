@@ -100,6 +100,7 @@ public class User extends JoinedPlayer {
     public int leftCPS, rightCPS, leftClickTick, rightClickTick;
     public boolean vanished;
     public boolean tpsBar, ramBar; // session-only boss bar readouts, toggled by /tpsbar and /rambar
+    public boolean god; // session-only, toggled by /god
     public volatile StatsBossBar statsBar;
     public long lastInvClick;
     public long lastMove = System.currentTimeMillis();
