@@ -98,6 +98,7 @@ public class User extends JoinedPlayer {
     public Queue<Integer> leftClickQueue = new ArrayDeque<>(), rightClickQueue = new ArrayDeque<>();
     public int leftCPS, rightCPS, leftClickTick, rightClickTick;
     public boolean vanished;
+    public boolean tpsBar, ramBar; // session-only action bar readouts, toggled by /tpsbar and /rambar
     public long lastInvClick;
     public long lastMove = System.currentTimeMillis();
     public String status;

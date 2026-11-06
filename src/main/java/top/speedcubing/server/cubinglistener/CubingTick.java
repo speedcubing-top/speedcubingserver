@@ -2,6 +2,7 @@ package top.speedcubing.server.cubinglistener;
 
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import top.speedcubing.common.events.ChampsChangedEvent;
 import top.speedcubing.common.events.ConfigReloadEvent;
 import top.speedcubing.common.events.CubingTickEvent;
@@ -13,6 +14,7 @@ import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.lib.eventbus.CubingEventHandler;
 import top.speedcubing.server.player.User;
 import top.speedcubing.server.utils.CPSMonitor;
+import top.speedcubing.server.utils.ServerStats;
 
 public class CubingTick {
     private static final String CPS_PREFIX = Prefix.CPS;
@@ -40,24 +42,23 @@ public class CubingTick {
                 user.player.sendMessage(CPS_PREFIX + Msg.ERROR + "Target went offline. Monitoring stopped.");
             }
 
+            String actionBar = null;
             if (target != null) {
                 String status = (nicked ? "§cNICKED §8| " : "") + (user.vanished ? "§cVANISHED §8| " : "");
-                PlayerUtils.sendActionBar(user.player, status + "§6" + target.player.getName() + " §fCPS: " + cpsColor(target.leftCPS) + target.leftCPS + " §e| " + cpsColor(target.rightCPS) + target.rightCPS);
+                actionBar = status + "§6" + target.player.getName() + " §fCPS: " + cpsColor(target.leftCPS) + target.leftCPS + " §e| " + cpsColor(target.rightCPS) + target.rightCPS;
             } else if (nicked && user.vanished) {
-                if (lobby) {
-                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked_vanished_lobby%").getString(user.lang));
-                } else {
-                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked_vanished%").getString(user.lang));
-                }
+                actionBar = Lang.of(lobby ? "%lang_server_actionbar_nicked_vanished_lobby%" : "%lang_server_actionbar_nicked_vanished%").getString(user.lang);
             } else if (user.vanished) {
-                PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_vanished%").getString(user.lang));
+                actionBar = Lang.of("%lang_server_actionbar_vanished%").getString(user.lang);
             } else if (nicked) {
-                if (lobby) {
-                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked_lobby%").getString(user.lang));
-                } else {
-                    PlayerUtils.sendActionBar(user.player, Lang.of("%lang_server_actionbar_nicked%").getString(user.lang));
-                }
+                actionBar = Lang.of(lobby ? "%lang_server_actionbar_nicked_lobby%" : "%lang_server_actionbar_nicked%").getString(user.lang);
             }
+            if (user.tpsBar)
+                actionBar = (actionBar == null ? "" : actionBar + " §8| ") + ServerStats.tpsLine(((CraftPlayer) user.player).getHandle().ping);
+            if (user.ramBar)
+                actionBar = (actionBar == null ? "" : actionBar + " §8| ") + ServerStats.ramLine();
+            if (actionBar != null)
+                PlayerUtils.sendActionBar(user.player, actionBar);
 
             //limbo
             if (!Bukkit.getServerName().equals("limbo"))
