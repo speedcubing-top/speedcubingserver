@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.player.User;
 import top.speedcubing.server.utils.Prefix;
 
 public class music implements CommandExecutor, Listener {
@@ -119,7 +120,7 @@ public class music implements CommandExecutor, Listener {
                 return true;
             }
             radioSongPlayer.addPlayer(target);
-            player.sendMessage(PREFIX + Msg.SUCCESS + "Added " + Msg.VALUE + target.getName() + Msg.SUCCESS + " to song player.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Added " + User.getUser(target).getColorName() + Msg.SUCCESS + " to song player.");
             return true;
         }
         if (args[0].equalsIgnoreCase("remove")) {
@@ -137,12 +138,12 @@ public class music implements CommandExecutor, Listener {
                 return true;
             }
             radioSongPlayer.removePlayer(target);
-            player.sendMessage(PREFIX + Msg.SUCCESS + "Removed " + Msg.VALUE + target.getName() + Msg.SUCCESS + " from song player.");
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Removed " + User.getUser(target).getColorName() + Msg.SUCCESS + " from song player.");
             return true;
         }
         if (args[0].equalsIgnoreCase("broadcast")) {
             broadcast = !broadcast;
-            player.sendMessage(PREFIX + Msg.SUCCESS + "Broadcast " + Msg.VALUE + (broadcast ? "On" : "Off"));
+            player.sendMessage(PREFIX + Msg.SUCCESS + "Broadcast " + Msg.VALUE + (broadcast ? "On" : "Off") + Msg.SUCCESS + ".");
         }
 
         return true;

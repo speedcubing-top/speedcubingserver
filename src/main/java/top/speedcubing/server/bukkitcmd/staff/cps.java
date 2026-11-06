@@ -14,6 +14,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.player.User;
 import top.speedcubing.server.utils.Prefix;
 
 import top.speedcubing.server.utils.CPSMonitor;
@@ -75,9 +76,9 @@ public class cps implements CommandExecutor {
 
             UUID previous = CPSMonitor.putMonitor(staffId, targetId);
             if (previous != null && previous.equals(targetId)) {
-                send(aud, Msg.ERROR + "You are already monitoring " + Msg.VALUE + target.getName() + Msg.ERROR + ".");
+                send(aud, Msg.ERROR + "You are already monitoring " + User.getUser(target).getColorName() + Msg.ERROR + ".");
             } else {
-                send(aud, Msg.SUCCESS + "Started monitoring " + Msg.VALUE + target.getName() + Msg.SUCCESS + "'s CPS (action bar). Run /" + label + " again to stop.");
+                send(aud, Msg.SUCCESS + "Started monitoring " + User.getUser(target).getColorName() + Msg.SUCCESS + "'s CPS (action bar). Run /" + label + " again to stop.");
             }
             return true;
         }

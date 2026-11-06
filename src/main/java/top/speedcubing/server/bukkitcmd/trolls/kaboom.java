@@ -32,7 +32,7 @@ public class kaboom implements CommandExecutor {
     private void applyVelocityToAllPlayers(Vector velocity, CommandSender commandSender) {
         Bukkit.getOnlinePlayers().forEach(player -> {
             player.setVelocity(velocity);
-            commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Launched " + Msg.VALUE + User.getUser(player).realName + Msg.SUCCESS + "!");
+            commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Launched " + User.getUser(player).getColorName() + Msg.SUCCESS + "!");
         });
     }
 

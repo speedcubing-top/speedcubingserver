@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.player.User;
 
 public class freeze implements CommandExecutor {
     private static final String PREFIX = Msg.STAFF;
@@ -33,7 +34,7 @@ public class freeze implements CommandExecutor {
         // Get the NMS player
         EntityPlayer nmsPlayer = ((CraftPlayer) targetPlayer).getHandle();
         nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(7, 25));
-        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Frozen " + Msg.VALUE + nmsPlayer.getName() + Msg.SUCCESS + "!");
+        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Frozen " + User.getUser(targetPlayer).getColorName() + Msg.SUCCESS + "!");
         return true;
     }
 }

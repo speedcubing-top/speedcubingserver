@@ -46,6 +46,6 @@ public class testkb extends CubingCommand {
 
     private void test(double x, double y, double z, Player player, CommandSender commandSender) {
         player.setVelocity(new Vector(x, y, z));
-        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Tested " + Msg.VALUE + User.getUser(player).realName + Msg.SUCCESS + " for anti kb! " + Msg.INFO + "(" + x + "," + y + "," + z + ")");
+        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Tested " + User.getUser(player).getColorName() + Msg.SUCCESS + " for anti kb! " + Msg.INFO + "(" + x + "," + y + "," + z + ")");
     }
 }

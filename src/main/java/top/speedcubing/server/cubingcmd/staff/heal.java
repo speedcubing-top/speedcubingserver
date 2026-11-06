@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.player.User;
 import top.speedcubing.server.system.command.CubingCommand;
 
 public class heal extends CubingCommand {
@@ -25,7 +26,7 @@ public class heal extends CubingCommand {
                 Player target = Bukkit.getPlayer(args[0]);
                 if (target != null) {
                     target.setHealth(target.getMaxHealth());
-                    player.sendMessage(PREFIX + Msg.SUCCESS + "Healed " + Msg.VALUE + target.getName() + Msg.SUCCESS + "!");
+                    player.sendMessage(PREFIX + Msg.SUCCESS + "Healed " + User.getUser(target).getColorName() + Msg.SUCCESS + "!");
                 } else {
                     player.sendMessage(PREFIX + Msg.PLAYER_NOT_FOUND);
                 }

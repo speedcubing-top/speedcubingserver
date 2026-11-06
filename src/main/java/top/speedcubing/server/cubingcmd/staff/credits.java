@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.player.User;
 import top.speedcubing.server.system.command.CubingCommand;
 
 public class credits extends CubingCommand {
@@ -33,6 +34,6 @@ public class credits extends CubingCommand {
         // Reason 4 opens the end-game credits. viewingCredits stays false, so the
         // respawn request the client sends when they close is ignored and the player stays put.
         ((CraftPlayer) target).getHandle().playerConnection.sendPacket(new PacketPlayOutGameStateChange(4, 0));
-        sender.sendMessage(PREFIX + Msg.SUCCESS + "Showing the credits to " + Msg.VALUE + target.getName() + Msg.SUCCESS + "!");
+        sender.sendMessage(PREFIX + Msg.SUCCESS + "Showing the credits to " + User.getUser(target).getColorName() + Msg.SUCCESS + "!");
     }
 }

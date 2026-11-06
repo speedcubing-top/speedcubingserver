@@ -12,6 +12,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.scheduler.BukkitRunnable;
 import top.speedcubing.server.authenticator.ImageRenderer;
+import top.speedcubing.server.lang.Lang;
+import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.common.text.Msg;
@@ -54,7 +56,12 @@ public class image implements CommandExecutor {
                     renderer = new ImageRenderer(url);
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> sender.sendMessage(Prefix.IMAGE + Msg.ERROR + "Could not load the image. Is the URL correct?"));
+                    Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {
+                        if (sender instanceof Player p)
+                            User.getUser(p).sendMessage("%lang_server_image_render_failed%");
+                        else
+                            sender.sendMessage(Lang.of("%lang_server_image_render_failed%").getString(0));
+                    });
                     return;
                 }
                 Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {

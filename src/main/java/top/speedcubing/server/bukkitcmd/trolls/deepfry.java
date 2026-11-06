@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import top.speedcubing.common.text.Msg;
+import top.speedcubing.server.player.User;
 
 public class deepfry implements CommandExecutor {
     private static final String PREFIX = Msg.STAFF;
@@ -40,7 +41,7 @@ public class deepfry implements CommandExecutor {
         nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(7, 4));
         targetPlayer.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 20, 9));
         targetPlayer.removePotionEffect(PotionEffectType.NIGHT_VISION);
-        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Deep fried " + Msg.VALUE + targetPlayer.getName() + Msg.SUCCESS + "!");
+        commandSender.sendMessage(PREFIX + Msg.SUCCESS + "Deep fried " + User.getUser(targetPlayer).getColorName() + Msg.SUCCESS + "!");
         //nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(7, 0));
 
 
