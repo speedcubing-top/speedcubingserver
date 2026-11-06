@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -52,6 +53,10 @@ public class PreListen implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void InventoryClickEvent(InventoryClickEvent e) {
+        // InventoryCreativeEvent shares this handler list, but it is the creative client syncing
+        // slots it changed itself, often several at once (shift-click, clear, middle-drag)
+        if (e instanceof InventoryCreativeEvent)
+            return;
         User user = User.getUser(e.getWhoClicked());
         long l = System.currentTimeMillis();
         if (l - user.lastInvClick < 100)
