@@ -58,6 +58,6 @@ public class bangift implements CommandExecutor {
 
     public static void fakeBan(Player player) {
         String banId = String.format("%08X", ThreadLocalRandom.current().nextInt());
-        BungeeProxy.proxyCommand("kick " + player.getName() + " " + Lang.of("%lang_server_bangift_fake_ban%", banId).getString(User.getUser(player).lang));
+        BungeeProxy.proxyCommand(player, "kick " + player.getName() + " " + Lang.of("%lang_server_bangift_fake_ban%", banId).getString(User.getUser(player).lang));
     }
 }

@@ -68,7 +68,7 @@ public class AuthenticatorCommand implements CommandExecutor {
                                     verifiedCount.put(player.getUniqueId(), score + 1);
                                 } else {
                                     verifiedCount.remove(player.getUniqueId());
-                                    BungeeProxy.proxyCommand("ban " + player.getName() + " 0 Suspicious activities detected on your account , contact support for assistance. -hideid");
+                                    BungeeProxy.proxyCommand(player, "ban " + player.getName() + " 0 Suspicious activities detected on your account , contact support for assistance. -hideid");
                                 }
                             } else {
                                 verifiedCount.put(player.getUniqueId(), 1);
