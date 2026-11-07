@@ -23,6 +23,10 @@
             <id>speedcubing-public</id>
             <url>https://repo.speedcubing.top/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>viaversion</id>
+            <url>https://repo.viaversion.com</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
@@ -52,6 +56,12 @@
             <groupId>top.speedcubing</groupId>
             <artifactId>speedcubingLib</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.viaversion</groupId>
+            <artifactId>viaversion-api</artifactId>
+            <version>5.12.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

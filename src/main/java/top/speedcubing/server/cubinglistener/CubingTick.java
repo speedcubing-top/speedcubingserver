@@ -58,13 +58,9 @@ public class CubingTick {
                 PlayerUtils.sendActionBar(user.player, actionBar);
 
             StatsBossBar statsBar = user.statsBar;
-            if (statsBar != null) {
-                String tps = user.tpsBar ? ServerStats.tpsLine(((CraftPlayer) user.player).getHandle().ping) : null;
-                String ram = user.ramBar ? ServerStats.ramLine() : null;
-                String text = tps == null ? ram : ram == null ? tps : tps + " §8| " + ram;
-                if (text != null) // both toggled off since the read above; the command is removing the bar
-                    statsBar.setText(text);
-            }
+            boolean tpsBar = user.tpsBar, ramBar = user.ramBar;
+            if (statsBar != null && (tpsBar || ramBar)) // both off: the command is removing the bar
+                statsBar.update(tpsBar, ramBar, ((CraftPlayer) user.player).getHandle().ping);
 
             //limbo
             if (!Bukkit.getServerName().equals("limbo"))
