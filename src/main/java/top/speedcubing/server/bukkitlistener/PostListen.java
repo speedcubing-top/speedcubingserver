@@ -79,6 +79,7 @@ public class PostListen implements Listener {
         nick.settingNick.remove(e.getPlayer().getUniqueId());
         nick.nickName.remove(e.getPlayer().getUniqueId());
         nick.nickRank.remove(e.getPlayer().getUniqueId());
+        nick.emptyNickSign.remove(e.getPlayer().getUniqueId());
         if (Bukkit.getOnlinePlayers().size() == 1 && speedcubingServer.restartable)
             speedcubingServer.restart();
     }
