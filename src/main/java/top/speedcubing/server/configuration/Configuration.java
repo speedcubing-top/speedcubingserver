@@ -12,7 +12,6 @@ import top.speedcubing.server.speedcubingServer;
 public class Configuration {
     public static int LeftCpsLimit = Integer.MAX_VALUE;
     public static int RightCpsLimit = Integer.MAX_VALUE;
-    public static Set<Pattern> filteredText = new HashSet<>();
     public static Set<String> onlineCrash = new HashSet<>();
     public static Set<Pattern> blockedLog = new HashSet<>();
     public static Set<Pattern> blockedMod = new HashSet<>();
@@ -24,8 +23,6 @@ public class Configuration {
         Configuration.LeftCpsLimit = ServerConfig.getConfig().get("leftcpslimit").getAsInt();
         Configuration.RightCpsLimit = ServerConfig.getConfig().get("rightcpslimit").getAsInt();
         Configuration.removeLogs = ServerConfig.getConfig().get("removeLogs").getAsBoolean();
-        Configuration.filteredText.clear();
-        ServerConfig.getConfig().get("filteredtext").getAsJsonArray().forEach(a -> Configuration.filteredText.add(Pattern.compile(a.getAsString())));
         Configuration.blockedLog.clear();
         ServerConfig.getConfig().get("spigotblockedlog").getAsJsonArray().forEach(a -> Configuration.blockedLog.add(Pattern.compile(a.getAsString())));
         Configuration.blockedMod.clear();

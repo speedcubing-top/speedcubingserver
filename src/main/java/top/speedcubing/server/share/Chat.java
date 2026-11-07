@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import top.speedcubing.common.chatfilter.ChatFilter;
+import top.speedcubing.common.chatfilter.FilterResult;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -20,36 +20,25 @@ import top.speedcubing.server.utils.Prefix;
 import top.speedcubing.lib.utils.SQL.SQLConnection;
 import top.speedcubing.lib.utils.SQL.SQLResult;
 import top.speedcubing.lib.utils.SQL.SQLRow;
-import top.speedcubing.lib.utils.StringUtils;
 import top.speedcubing.lib.utils.SystemUtils;
 import top.speedcubing.lib.utils.TimeFormatter;
 import top.speedcubing.server.lang.Lang;
 import top.speedcubing.server.player.User;
-import top.speedcubing.server.configuration.Configuration;
 
 public class Chat {
 
-    private static String filter(String text) {
-        for (Pattern p : Configuration.filteredText) {
-            Matcher matcher = p.matcher(text);
-            StringBuilder replacement = new StringBuilder();
-            while (matcher.find()) {
-                String match = matcher.group();
-                matcher.appendReplacement(replacement, StringUtils.repeat("*", match.length()));
-            }
-            matcher.appendTail(replacement);
-            text = replacement.toString();
-        }
-        return text;
-    }
-
     public static void globalChat(Collection<? extends Player> players, Player sender, Lang format, String message, String... replace) {
+        // normally stopped at the proxy already, but chat can reach a server without passing it
+        FilterResult filterResult = ChatFilter.get().check(message);
+        if (filterResult.isBlocked()) {
+            User.getUser(sender).sendMessage("%lang_chat_filter_blocked%");
+            return;
+        }
+
         format.param(replace);
 
-        String filteredMessage = filter(message);
-
         Lang unfiltered = format.clone().param(message);
-        Lang filtered = format.clone().param(filteredMessage);
+        Lang filtered = filterResult.isMasked() ? format.clone().param(filterResult.masked()) : unfiltered;
 
         try (SQLConnection connection = Database.getCubing()) {
             SQLResult result = connection.select("uuid")
