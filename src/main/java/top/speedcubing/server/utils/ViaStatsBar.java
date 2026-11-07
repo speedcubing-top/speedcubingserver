@@ -32,11 +32,10 @@ final class ViaStatsBar {
         }
     }
 
-    private static final BossColor[] LEVEL_COLORS = {BossColor.GREEN, BossColor.YELLOW, BossColor.RED};
-
     /** level: 0 good, 1 medium, 2 bad. Shows the bar if it is not shown yet. */
     void set(String title, float health, int level) {
-        BossColor color = LEVEL_COLORS[level];
+        // no static field of Via types: supports() runs on servers without ViaVersion and must not load them
+        BossColor color = level == 0 ? BossColor.GREEN : level == 1 ? BossColor.YELLOW : BossColor.RED;
         if (bar == null) {
             bar = Via.getAPI().legacyAPI().createLegacyBossBar(title, health, color, BossStyle.SEGMENTED_20);
             bar.addPlayer(viewer);
