@@ -244,9 +244,9 @@ public class PreListen implements Listener {
         //send packets
         user.createTeamPacket();
         for (User u : User.getUsers()) {
-            user.sendPacket(u.leavePacket, u.joinPacket);
+            user.sendPacket(u.leavePacket, u.joinPacketFor(user));
             if (u != user) {
-                u.sendPacket(user.leavePacket, user.joinPacket);
+                u.sendPacket(user.leavePacket, user.joinPacketFor(u));
             }
         }
 
@@ -261,12 +261,14 @@ public class PreListen implements Listener {
         // recalculate when a period rank ends
         user.scheduleRankExpiry(ctx.getRankExpiresAt());
 
-        //vanish
+        //vanish: hidden from everyone but staff
         for (User u : User.getUsers()) {
-            if (u.vanished) {
+            if (u == user)
+                continue;
+            if (!u.canBeSeenBy(user)) {
                 player.hidePlayer(u.player);
             }
-            if (user.vanished) {
+            if (!user.canBeSeenBy(u)) {
                 u.bHidePlayer(player);
             }
         }
