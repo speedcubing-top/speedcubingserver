@@ -45,19 +45,22 @@ public class RedisListener {
                 return;
             }
 
-            user.vanished = message.state();
-            if (user.vanished) {
-                Bukkit.getScheduler().runTask(speedcubingServer.getInstance(), () -> {
-                    for (Player p : Bukkit.getOnlinePlayers())
-                        if (!User.getUser(p).isStaff)
-                            p.hidePlayer(user.player);
-                });
-            } else {
-                Bukkit.getScheduler().runTask(speedcubingServer.getInstance(), () -> {
-                    for (Player p : Bukkit.getOnlinePlayers())
-                        p.showPlayer(user.player);
-                });
-            }
+            boolean vanished = message.state();
+            Bukkit.getScheduler().runTask(speedcubingServer.getInstance(), () -> {
+                user.vanished = vanished;
+                for (User viewer : User.getUsers()) {
+                    // staff, including the player themself, get the [V] tag added or removed;
+                    // the team must be removed before it is re-created
+                    if (viewer.isStaff)
+                        viewer.sendPacket(user.leavePacket, user.joinPacketFor(viewer));
+                    if (viewer == user)
+                        continue;
+                    if (user.canBeSeenBy(viewer))
+                        viewer.player.showPlayer(user.player);
+                    else
+                        viewer.player.hidePlayer(user.player);
+                }
+            });
         });
         RedisBus.subscribe(RedisBus.getChannelPrefix() + ":server:" + Bukkit.getServerName() + ":demo", rawMessage -> {
             PacketPlayOutGameStateChange packet = new PacketPlayOutGameStateChange(5, 0);

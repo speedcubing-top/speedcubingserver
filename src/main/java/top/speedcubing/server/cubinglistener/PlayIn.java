@@ -18,6 +18,8 @@ import top.speedcubing.server.player.User;
 import top.speedcubing.server.speedcubingServer;
 import top.speedcubing.server.utils.CommandParser;
 
+import java.util.UUID;
+
 public class PlayIn {
 
 
@@ -56,14 +58,28 @@ public class PlayIn {
             }
         } else if (e.getPacket() instanceof PacketPlayInUpdateSign packet) {
             IChatBaseComponent[] components = packet.b();
-            String name = components[0].getText();
+            String name = components[0].getText().trim();
 
             if (nick.settingNick.containsKey(e.getPlayer().getUniqueId())) {
                 Bukkit.getScheduler().runTask(speedcubingServer.instance, () -> {
+                    UUID uuid = e.getPlayer().getUniqueId();
+                    if (name.isEmpty()) {
+                        // ask again once; the hint tells them a second empty sign cancels (Esc sends one too)
+                        if (nick.emptyNickSign.add(uuid)) {
+                            nick.openNickBook(e.getPlayer(), nick.NickBook.NAMECUSTOM);
+                            return;
+                        }
+                        nick.emptyNickSign.remove(uuid);
+                        nick.settingNick.remove(uuid);
+                        nick.nickName.remove(uuid);
+                        nick.nickRank.remove(uuid);
+                        return;
+                    }
+                    nick.emptyNickSign.remove(uuid);
                     try {
-                        nick.nickName.put(e.getPlayer().getUniqueId(), name);
-                        e.getPlayer().performCommand("nick " + name + " " + nick.nickRank.get(e.getPlayer().getUniqueId()) + " true");
-                        nick.openNickBook(e.getPlayer(), nick.NickBook.RULE);
+                        nick.nickName.put(uuid, name);
+                        // runs nickCheck, which opens the RULE book on success
+                        e.getPlayer().performCommand("nick " + name + " " + nick.nickRank.get(uuid) + " true");
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         User.getUser(e.getPlayer()).sendMessage("%lang_server_command_error%", String.valueOf(ex.getMessage()));

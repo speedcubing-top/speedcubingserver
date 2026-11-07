@@ -23,19 +23,55 @@ public final class ServerStats {
         return sum / (double) times.length / 1_000_000.0;
     }
 
+    // colours and thresholds follow Purpur's /tpsbar and /rambar
+    private static String good(boolean good, boolean medium) {
+        return good ? "§a" : medium ? "§e" : "§c";
+    }
+
     public static String tpsLine(int ping) {
         double tps = tps();
         double mspt = mspt();
-        return "§fTPS " + (tps >= 19.5 ? "§a" : tps >= 15 ? "§e" : "§c") + String.format("%.2f", tps)
-                + " §8| §fMSPT " + (mspt < 40 ? "§a" : mspt < 50 ? "§e" : "§c") + String.format("%.1f", mspt)
-                + " §8| §fPing " + (ping < 100 ? "§a" : ping < 200 ? "§e" : "§c") + ping + "ms";
+        return "§7TPS§e: " + good(tps >= 19, tps >= 15) + String.format("%.2f", tps)
+                + " §7MSPT§e: " + good(mspt < 40, mspt < 50) + String.format("%.2f", mspt)
+                + " §7Ping§e: " + good(ping < 100, ping < 200) + ping + "§7ms";
+    }
+
+    /** Fill of the TPS bar: tick time against the 50 ms budget. */
+    public static float msptProgress() {
+        return (float) Math.max(0, Math.min(1, mspt() / 50));
+    }
+
+    /** 0 good, 1 medium, 2 bad; the TPS bar's colour, by tick time. */
+    public static int msptLevel() {
+        double mspt = mspt();
+        return mspt < 40 ? 0 : mspt < 50 ? 1 : 2;
     }
 
     public static String ramLine() {
         MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         long max = SystemUtils.getXmx();
-        int percent = (int) (heap.getUsed() * 100 / max);
-        return "§fRAM " + (percent < 70 ? "§a" : percent < 90 ? "§e" : "§c") + heap.getUsed() / 1048576 + "§7/§f" + max / 1048576 + " MiB §7(" + percent + "%)";
+        float used = ramProgress();
+        String colour = good(used < 0.60F, used < 0.85F);
+        return "§7Ram§e: " + colour + bytes(heap.getUsed()) + "§7/" + colour + bytes(max) + " §7(" + (int) (used * 100) + "%)";
+    }
+
+    /** Fill of the RAM bar: used heap against -Xmx. */
+    public static float ramProgress() {
+        long max = SystemUtils.getXmx();
+        return Math.max(0, Math.min(1, ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed() / (float) max));
+    }
+
+    /** 0 good, 1 medium, 2 bad; the RAM bar's colour. */
+    public static int ramLevel() {
+        float used = ramProgress();
+        return used < 0.5F ? 0 : used < 0.75F ? 1 : 2;
+    }
+
+    private static String bytes(long v) {
+        if (v < 1024)
+            return v + "B";
+        int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
+        return String.format("%.1f%s", (double) v / (1L << (z * 10)), "BKMGTPE".charAt(z));
     }
 
     public static String uptime() {

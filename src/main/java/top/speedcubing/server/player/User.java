@@ -95,6 +95,8 @@ public class User extends JoinedPlayer {
     public MinecraftProxy proxy;
     public boolean chatFilt;
     public PacketPlayOutScoreboardTeam joinPacket;
+    // same team as joinPacket with a [V] prefix: what staff see while this player is vanished
+    public PacketPlayOutScoreboardTeam vanishedJoinPacket;
     public PacketPlayOutScoreboardTeam leavePacket;
     public Queue<Integer> leftClickQueue = new ArrayDeque<>(), rightClickQueue = new ArrayDeque<>();
     public int leftCPS, rightCPS, leftClickTick, rightClickTick;
@@ -383,8 +385,32 @@ public class User extends JoinedPlayer {
 
     public void createTeamPacket() {
         String extracted = Rank.getCode(displayRank) + RankSystem.playerNameEncode(bGetName());
+        String prefix = getFormat(false).getPrefix();
         this.leavePacket = new OutScoreboardTeam().a(extracted).h(1).packet;
-        this.joinPacket = new OutScoreboardTeam().a(extracted).c(getFormat(false).getPrefix()).d(getGuildTag(nicked())).g(Collections.singletonList(bGetName())).h(0).packet;
+        this.joinPacket = new OutScoreboardTeam().a(extracted).c(prefix).d(getGuildTag(nicked())).g(Collections.singletonList(bGetName())).h(0).packet;
+        this.vanishedJoinPacket = new OutScoreboardTeam().a(extracted).c(vanishedPrefix(prefix)).d(getGuildTag(nicked())).g(Collections.singletonList(bGetName())).h(0).packet;
+    }
+
+    private static final String VANISHED_PREFIX = "§8[§eV§8] ";
+    // team prefixes are limited to 16 characters; longer ones are rejected by clients
+    private static final int TEAM_PREFIX_MAX = 16;
+
+    /** [V] in front of the rank prefix, or of just the rank's name colour when both do not fit. */
+    private static String vanishedPrefix(String rankPrefix) {
+        if (VANISHED_PREFIX.length() + rankPrefix.length() <= TEAM_PREFIX_MAX)
+            return VANISHED_PREFIX + rankPrefix;
+        int colour = rankPrefix.lastIndexOf('§');
+        return colour >= 0 && colour + 1 < rankPrefix.length() ? VANISHED_PREFIX + rankPrefix.substring(colour, colour + 2) : VANISHED_PREFIX;
+    }
+
+    /** Vanished players are only visible to staff, who see them tagged [V]. */
+    public boolean canBeSeenBy(User viewer) {
+        return !vanished || viewer.isStaff;
+    }
+
+    /** The nametag/tab team this player shows to {@code viewer}. */
+    public PacketPlayOutScoreboardTeam joinPacketFor(User viewer) {
+        return vanished && viewer.isStaff ? vanishedJoinPacket : joinPacket;
     }
 
     // real-name team shown only to a nicked player themself, so they still see their real rank
@@ -439,7 +465,7 @@ public class User extends JoinedPlayer {
         PacketPlayOutScoreboardTeam oldLeave = leavePacket;
         createTeamPacket();
         for (User u : getUsers())
-            u.sendPacket(oldLeave, joinPacket);
+            u.sendPacket(oldLeave, joinPacketFor(u));
         if (nicked())
             sendPacket(realNameTeam(oldRealRank, true), realNameTeam(realRank, false));
     }
