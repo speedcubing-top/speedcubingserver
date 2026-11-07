@@ -9,6 +9,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import top.speedcubing.common.chatfilter.ChatFilter;
+import top.speedcubing.common.chatfilter.FilterResult;
 import top.speedcubing.common.database.Database;
 import top.speedcubing.common.player.PlayerCache;
 import top.speedcubing.common.rank.Rank;
@@ -116,6 +118,8 @@ public class nick implements CommandExecutor, Listener {
                         User.getUser(commandSender).sendMessage("%lang_server_nick_no_previous%");
                     } else if (result.getString(0).equals(commandSender.getName())) {
                         User.getUser(commandSender).sendMessage("%lang_nick_already%");
+                    } else if (isFiltered(result.getString(0))) {
+                        User.getUser(commandSender).sendMessage("%lang_nick_filtered%");
                     } else {
                         nick.nickPlayer(result.getString(0), allowedOrDefault(User.getUser(commandSender), result.getString(1)), true, (Player) commandSender, false);
                         User.getUser(commandSender).sendMessage("%lang_server_nick_reused%");
@@ -180,10 +184,24 @@ public class nick implements CommandExecutor, Listener {
         return canNickAs(user, rank) ? rank : "default";
     }
 
+    /** Nicknames are shown to everyone with no per-viewer masking, so any MASK or BLOCK hit rejects the name. */
+    private static boolean isFiltered(String name) {
+        FilterResult result = ChatFilter.get().check(name);
+        return result.isBlocked() || result.isMasked();
+    }
+
     private void nickCheck(User user, String name, Player player, String rank, boolean openBook) {
         if (!user.hasPermission("perm.nick.customname") && !settingNick.containsKey(user.bGetUniqueId())) {
             openNickBook(player, NickBook.EULA);
             settingNick.put(user.bGetUniqueId(), true);
+            return;
+        }
+
+        if (isFiltered(name)) {
+            settingNick.remove(player.getUniqueId());
+            nickName.remove(player.getUniqueId());
+            nickRank.remove(player.getUniqueId());
+            user.sendMessage("%lang_nick_filtered%");
             return;
         }
 
